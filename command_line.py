@@ -15,34 +15,42 @@ import sys
 def get_arguments(argv, code_name):
     """
     the function receivs inputs from terminal and returns a tuple contains
-    (<input file directory>,<output file directory>)
+    (<input file directory>, <output file directory>, <Text File Path>)
         
     -h: means help
     -i: input path to ucf101 rgp dataset
     -o: output path to the extrcted train, and test files
+    -t: Text File path to the extrcted train, and test files
     --inputPath=: input path to ucf101 rgp dataset
     --outputPath=: output path to the extrcted train, and test files
+    --TextFilePath= Text File path to the extrcted train, and test files
     """
     input_path = None
     output_path = None
+    textFile_path = None
+    
     try:
-        options, arguments = getopt.getopt(argv, "hi:o:",["inputPath=", "outputPath=",
-                                                          "help"])
-        #print(options)
+        options, arguments = getopt.getopt(argv, "h:i:t:o:",["inputPath=", 
+                                "outputPath=", "textFilePath=", "help"])
+        print(options)
     except getopt.GetoptError:
         raise ValueError("Invalid input argument try", code_name+" -h")
         #sys.exit
         
     for (opt, arg) in options:
-        #print(opt, arg)
+        print(opt, arg)
         
         if (opt == '-h' or opt == "--help") :
             print(code_name,"Command Line Argument Help")
-            print("Usage:", '"python3 ', code_name,'-i <INPUT Path> -o <OUTPUT Path>".' )
-            print("-i: input path to ucf101 rgp dataset, or you can use '--inputPath='.")
-            print("-o: output path to the extrcted train, and test files,",
+            print("Usage:", '"python3 ', code_name,'-i <INPUT Path>',
+                  ' -o <OUTPUT Path> -t <TEXT FILE PATH>".' )
+            print("-i: Input path to ucf101 rgp dataset, or you can use '--inputPath='.")
+            print("-o: Iutput path to the extrcted train, and test files,",
                   "or you can use '--outputPath='.")
-            print("-h: means help, or you can use '--help'.")
+            print("-t: Text File path to the extrcted train, and test files,",
+                  "or you can use '--TextFilePath='.")
+            
+            print("-h: Means help, or you can use '--help'.")
             
             sys.exit() #exiting the code
             
@@ -57,6 +65,9 @@ def get_arguments(argv, code_name):
         elif opt=='-o' or opt =='--outputPath':
             
             output_path = arg.split(" ")[-1] #taking string without spaces
+            
+        elif opt == 't' or opt == '--textFilePath':
+            textFile_path = arg.split(" ")[-1] #taking string without spaces
             
                      
              
@@ -75,8 +86,12 @@ def get_arguments(argv, code_name):
     elif output_path == None or output_path == '':
        raise ValueError("You must specify the OUTPUT file"+
             " path.\n" + "For more info type 'python3 " + str(code_name) +" -h'")
-        
-    return input_path, output_path
+       
+    elif textFile_path == None or textFile_path == '':
+       raise ValueError("You must specify the TEXT FILE"+
+            " path.\n" + "For more info type 'python3 " + str(code_name) +" -h'")
+       
+    return input_path, output_path, textFile_path
             
             
 
@@ -88,23 +103,23 @@ def get_arguments(argv, code_name):
 Tset1
 """
 
-#argv = ['--inputPath== /hamo/anaconda','--outputPath== hamo']
+#argv = ['--inputPath=/hamo/anaconda','--outputPath=hamo', '--textFilePath=nkf']
 #code_name = 'code.py'
 #print(get_arguments(argv, code_name))
 
 """
 Test2
 """
-#argv = ['-outputPath= hamo']
+#argv = ['-outputPath= hamo', '-i /anaconda/rgr']
 #code_name = 'code.py'
 #print(get_arguments(argv, code_name))
 
 """
 Test3
 """
-#argv = ['-inputPath= /gamo/anaconda']
-#code_name = 'code.py'
-#print(get_arguments(argv, code_name))
+argv = ['-inputPath= /gamo/anaconda']
+code_name = 'code.py'
+print(get_arguments(argv, code_name))
     
 
 """

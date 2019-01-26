@@ -8,9 +8,23 @@ Created on Sun Dec 23 19:40:01 2018
 import getopt
 import sys
 
+check_word = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    
+def validWord(word):
+    """
+    the function check if the input word has valid english charcters
+    returns True if it has 
+    returns False if it hasn't
+    """
+    if word != None:
+        for char in word:
+            if char in check_word:
+                return True
+        
+    return False
+    
 
-    
-    
+
 
 def get_arguments(argv, code_name):
     """
@@ -30,11 +44,14 @@ def get_arguments(argv, code_name):
     textFile_path = None
     
     try:
-        options, arguments = getopt.getopt(argv, "h:i:t:o:",["inputPath=", 
+        options, arguments = getopt.getopt(argv, "hi:t:o:",["inputPath=", 
                                 "outputPath=", "textFilePath=", "help"])
         print(options)
     except getopt.GetoptError:
-        raise ValueError("Invalid input argument try", code_name+" -h")
+        raise ValueError("Invalid input argument try\n" + 
+                         "Usage:" + '"python3 ' + code_name + ' -i <INPUT PATH>' +
+                  ' -o <OUTPUT Path> -t <TEXT FILE PATH>".\n' +
+                  "For more type 'python3 " + code_name + "-h'.")
         #sys.exit
         
     for (opt, arg) in options:
@@ -42,7 +59,7 @@ def get_arguments(argv, code_name):
         
         if (opt == '-h' or opt == "--help") :
             print(code_name,"Command Line Argument Help")
-            print("Usage:", '"python3 ', code_name,'-i <INPUT Path>',
+            print("Usage:", '"python3 ', code_name,' -i <INPUT PATH>',
                   ' -o <OUTPUT Path> -t <TEXT FILE PATH>".' )
             print("-i: Input path to ucf101 rgp dataset, or you can use '--inputPath='.")
             print("-o: Iutput path to the extrcted train, and test files,",
@@ -66,30 +83,42 @@ def get_arguments(argv, code_name):
             
             output_path = arg.split(" ")[-1] #taking string without spaces
             
-        elif opt == 't' or opt == '--textFilePath':
+        elif opt == '-t' or opt == '--textFilePath':
             textFile_path = arg.split(" ")[-1] #taking string without spaces
             
                      
              
     #if there is no input arguments           
     if len(options) ==0:
-        raise ValueError("Yod did not input any argument, Please type " +
-                        "'python3 " + str(code_name) +" -h'")
+        raise ValueError("Yod did not input any argument.\n" +
+                        "Usage:" + '"python3 ' + code_name + ' -i <INPUT PATH>' +
+                  ' -o <OUTPUT PATH> -t <TEXT FILE PATH>".\n' +
+                  "For more type 'python3 " + code_name + "-h'.")
             
         
     #if the user did not input input or output path
     
-    if input_path == None or input_path == '':
-        raise ValueError("You must specify the INPUT file"+
-            " path.\n" + "For more info type 'python3 " + str(code_name) +" -h'")
+    print("TEXT PATH: '", textFile_path,"'")
+    flag = False
+    if input_path == None or (not validWord(input_path)):
+        flag = True
+        print("You must specify the INPUT file PATH.")
         
-    elif output_path == None or output_path == '':
-       raise ValueError("You must specify the OUTPUT file"+
-            " path.\n" + "For more info type 'python3 " + str(code_name) +" -h'")
+    if output_path == None or (not validWord(output_path)):
+        flag = True
+        print("You must specify the OUTPUT file PATH.")
        
-    elif textFile_path == None or textFile_path == '':
-       raise ValueError("You must specify the TEXT FILE"+
-            " path.\n" + "For more info type 'python3 " + str(code_name) +" -h'")
+        
+    if textFile_path == None or (not validWord(textFile_path)):
+        flag = True
+        print("You must specify the TEXT FILE PATH.") 
+    
+    if flag:
+        print("Usage:", '"python3 ', code_name,'-i <INPUT PATH>',
+                  ' -o <OUTPUT PATH> -t <TEXT FILE PATH>".' )
+        
+        print("For more info type 'python3 " + str(code_name) +" -h'")
+        sys.exit()
        
     return input_path, output_path, textFile_path
             
@@ -110,16 +139,16 @@ Tset1
 """
 Test2
 """
-#argv = ['-outputPath= hamo', '-i /anaconda/rgr']
+#argv = ['-outputPath= hamo', '-i ']
 #code_name = 'code.py'
 #print(get_arguments(argv, code_name))
 
 """
 Test3
 """
-argv = ['-inputPath= /gamo/anaconda']
-code_name = 'code.py'
-print(get_arguments(argv, code_name))
+#argv = ['-inputPath= /gamo/anaconda']
+#code_name = 'code.py'
+#print(get_arguments(argv, code_name))
     
 
 """
@@ -140,6 +169,13 @@ Test 5 help
 Test 6 
 """
 #argv = ['-i /hamo/anaconda','-o hamo']
+#code_name = 'code.py'
+#print(get_arguments(argv, code_name))
+
+"""
+Test 7
+"""
+#argv = ['-m']
 #code_name = 'code.py'
 #print(get_arguments(argv, code_name))
 

@@ -22,13 +22,13 @@ import sys               #internal python library for implmenting command line i
 
 """Now, we will define two functions: one for extracting name and label for each video and the other for extracting each video directory and number of frames."""
 
-def SplitsInfoExtract1():
+def SplitsInfoExtract1(textfiles_dir):
     """
     Extract name&label for each video 
     output: list of tuples (each tuple has trainlist and testlist) of list of tuple (each tuple has name of the video and its label)
     Note: we have three splits for taining and testing
     """
-    actionLabel = [x.strip().split() for x in open(r'C:\Driver E\Jimy\Machine_Learning\Graduation_Project\UCF_Dataset\classInd.txt')]  #[[1,'label1'],.....]
+    actionLabel = [x.strip().split() for x in open(os.path.join(textfiles_dir,'classInd.txt'))]  #[[1,'label1'],.....]
     actionLabel_dic = {x[1]:int(x[0])-1 for x in actionLabel}            #{'label1':0, 'label2':1 ,...}
     
     
@@ -46,8 +46,8 @@ def SplitsInfoExtract1():
     Name_Label = []
     
     for i in range(1,4): #looping through the dataset splits to Extract information
-        trainlist = [ExtractInfo(x) for x in open (r'C:\Driver E\Jimy\Machine_Learning\Graduation_Project\UCF_Dataset\trainlist{:02d}.txt'.format(i))] #Extract info from every video in the trian splits
-        testlist  = [ExtractInfo(x) for x in open (r'C:\Driver E\Jimy\Machine_Learning\Graduation_Project\UCF_Dataset\testlist{:02d}.txt'.format(i))]  #Extract info from every video in the test splits
+        trainlist = [ExtractInfo(x) for x in open (os.path.join(textfiles_dir,'trainlist{:02d}.txt'.format(i)))] #Extract info from every video in the trian splits
+        testlist  = [ExtractInfo(x) for x in open (os.path.join(textfiles_dir,'testlist{:02d}.txt'.format(i)))]  #Extract info from every video in the test splits
         Name_Label.append((trainlist,testlist))
 
     return Name_Label
@@ -105,7 +105,7 @@ def MergeInfo(Name_Label,Frames_dir, split_idx, shuffle=False):
 
 """Now let's build our list file function that will be used for different datasets to generate directory, number of frames and label for each video."""
 
-def Build_List_File(dataset_dir, out_dir, splits_num=1, shuffle=False):
+def Build_List_File(dataset_dir, out_dir, textfiles_dir, splits_num, shuffle=False):
     
     """
     Inputs:
@@ -114,7 +114,7 @@ def Build_List_File(dataset_dir, out_dir, splits_num=1, shuffle=False):
         splits_num: number of dataset splits (we will go with 1 split for simplicity)
         shuffle: True or False
     """
-    Name_Label = SplitsInfoExtract1()
+    Name_Label = SplitsInfoExtract1(textfiles_dir)
     Frames_dir = SplitsInfoExtract2(dataset_dir)
     
     for i in range(splits_num):
@@ -126,8 +126,10 @@ def Build_List_File(dataset_dir, out_dir, splits_num=1, shuffle=False):
 
 
 if __name__=="__main__":
-    #dataset_dir = r'C:\Driver E\Jimy\Machine_Learning\Graduation_Project\UCF_Dataset\jpegs_256'
-    #out_dir = r'C:\Driver E\Jimy\Machine_Learning\Graduation_Project\UCF_Dataset'
-    dataset_dir, out_dir = cl.get_arguments(sys.argv[1:],
+        
+    dataset_dir, out_dir, textfiles_dir = cl.get_arguments(sys.argv[1:],
                                          code_name="list_file_command.py")
-    Build_List_File(dataset_dir, out_dir, splits_num=1, shuffle=False)
+#    dataset_dir = r'C:\Driver E\Jimy\Machine_Learning\Graduation_Project\UCF_Dataset\jpegs_256'
+#    out_dir = r'C:\Driver E\Jimy\Machine_Learning\Graduation_Project\UCF_Dataset'
+#    textfiles_dir = r'C:\Driver E\Jimy\Machine_Learning\Graduation_Project\UCF_Dataset'
+    Build_List_File(dataset_dir, out_dir, textfiles_dir, splits_num=1, shuffle=False)

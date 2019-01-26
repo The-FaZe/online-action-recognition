@@ -3,10 +3,11 @@ Implement a model for smart cameras that can be used in surveillance and smart c
 
 ## list_file_command.py Command Line Argument Help 
 
-**Usage**: `python3  list_file_command.py -i <INPUT Path> -o <OUTPUT Path>`.<br/>
-`-i`: input path to ucf101 rgp dataset, or you can use `--inputPath=`.<br/>
-`-o`: output path to the extrcted train, and test files, or you can use `--outputPath=`.<br/>
-`-h`: means help, or you can use `--help`.<br/>
+**Usage**: `python3  list_file_command.py  -i <INPUT PATH>  -o <OUTPUT Path> -t <TEXT FILE PATH>`.<br/>
+`-i`: Input path to ucf101 rgp dataset, or you can use `--inputPath=`.<br/>
+`-o`: Iutput path to the extrcted train, and test files, or you can use `--outputPath=`.<br/>
+`-t`: Text File path to the extrcted train, and test files, or you can use `--TextFilePath=`.<br/>
+`-h`: Means help, or you can use `--help`.<br/>
 
 
 

@@ -46,7 +46,7 @@ def get_arguments(argv, code_name):
     try:
         options, arguments = getopt.getopt(argv, "hi:t:o:",["inputPath=", 
                                 "outputPath=", "textFilePath=", "help"])
-        print(options)
+        #print(options)
     except getopt.GetoptError:
         raise ValueError("Invalid input argument try\n" + 
                          "Usage:" + '"python3 ' + code_name + ' -i <INPUT PATH>' +
@@ -55,7 +55,7 @@ def get_arguments(argv, code_name):
         #sys.exit
         
     for (opt, arg) in options:
-        print(opt, arg)
+        #print(opt, arg)
         
         if (opt == '-h' or opt == "--help") :
             print(code_name,"Command Line Argument Help")
@@ -117,7 +117,7 @@ def get_arguments(argv, code_name):
         print("Usage:", '"python3 ', code_name,'-i <INPUT PATH>',
                   ' -o <OUTPUT PATH> -t <TEXT FILE PATH>".' )
         
-        print("For more info type 'python3 " + str(code_name) +" -h'")
+        print("For more info type 'python3 " + str(code_name) +" -h'.")
         sys.exit()
        
     return input_path, output_path, textFile_path

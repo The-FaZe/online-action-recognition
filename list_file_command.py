@@ -26,10 +26,10 @@ def SplitsInfoExtract1(textfiles_dir):
     """
     Extract name&label for each video 
     output: list of tuples (each tuple has trainlist and testlist) of list of tuple (each tuple has name of the video and its label)
-    Note: we have three splits for taining and testing
+    Note: we have three splits for training and testing
     """
     actionLabel = [x.strip().split() for x in open(os.path.join(textfiles_dir,'classInd.txt'))]  #[[1,'label1'],.....]
-    actionLabel_dic = {x[1]:int(x[0])-1 for x in actionLabel}            #{'label1':0, 'label2':1 ,...}
+    actionLabel_dic = {x[1]:int(x[0])-1 for x in actionLabel}                  #{'label1':0, 'label2':1 ,...}
     
     
     
@@ -56,14 +56,14 @@ def SplitsInfoExtract2(dataset_dir):
     '''
     Input: dataset directory 
     Output:RGB_count ---> number of frames in each video stored in a dictionary
-                Video_dir ---> the directory of each video stored in a dictionary
+           Video_dir ---> the directory of each video stored in a dictionary
     '''
     Framefiles_dir = glob.glob(os.path.join(dataset_dir,'*'))
     
     RGB_count = {}
     Video_dir = {}
     for file_dir in Framefiles_dir:
-        Video_name = file_dir.split('\\')[-1]
+        Video_name = file_dir.split('/')[-1]   #WARNING:The splitor sign (/) may be different from a machine to another
         Frames_list = os.listdir(file_dir)
         RGB_count[Video_name] = len(Frames_list)
         Video_dir[Video_name] = file_dir
@@ -105,7 +105,7 @@ def MergeInfo(Name_Label,Frames_dir, split_idx, shuffle=False):
 
 """Now let's build our list file function that will be used for different datasets to generate directory, number of frames and label for each video."""
 
-def Build_List_File(dataset_dir, out_dir, textfiles_dir, splits_num, shuffle=False):
+def Build_List_File(dataset_dir, out_dir, textfiles_dir, splits_num=1, shuffle=False):
     
     """
     Inputs:

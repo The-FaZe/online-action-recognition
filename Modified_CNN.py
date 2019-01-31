@@ -226,7 +226,7 @@ class TSN_model(nn.Module):
           else:
               RGBDiff_tensor[:, :, x - 1, :, :, :] = RGB_tensor[:, :, x, :, :, :] - RGB_tensor[:, :, x - 1, :, :, :]
 
-    return RGBDiff_tensor
+      return RGBDiff_tensor
      
     def partialBN(self, enable):
         self.enable_pbn = enable  

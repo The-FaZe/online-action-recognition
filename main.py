@@ -1,5 +1,6 @@
 import argparse #used for command line interfacing.
 import torch
+import os
 import torchvision
 import torch.nn.parallel #to use multiple GPUs.
 import time

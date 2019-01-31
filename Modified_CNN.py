@@ -1,5 +1,5 @@
 import torchvision
-from torch.nn.init import normal, constant
+from torch.nn.init import normal_, constant_
 from torch import nn
 import numpy as np
 import torch

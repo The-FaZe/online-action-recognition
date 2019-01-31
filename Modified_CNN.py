@@ -113,11 +113,11 @@ class TSN_model(nn.Module):
         #Modify Wighets of newly created Linear layer
         std=0.001
         if self.new_fc == None:
-            normal_.normal(getattr(self.base_model, self.last_layer_name).weight,0,std)
-            constant_.constant(getattr(self.base_model, self.last_layer_name).bias,0)
+            normal_(getattr(self.base_model, self.last_layer_name).weight,0,std)
+            constant_(getattr(self.base_model, self.last_layer_name).bias,0)
         else:
-            normal_.normal(self.new_fc.weight, 0, std)
-            constant_.constant(self.new_fc.bias,0)
+            normal_(self.new_fc.weight, 0, std)
+            constant_(self.new_fc.bias,0)
        
     def Modify_RGBDiff_Model(self, base_model, keep_rgb=False):
       

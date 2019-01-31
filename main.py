@@ -379,4 +379,5 @@ def accuracy(output, target, topk=(1,)):
 
 
 if __name__ == '__main__':
+    os.environ['TORCH_MODEL_ZOO'] = "/home/alex039u2/data/"
     main()

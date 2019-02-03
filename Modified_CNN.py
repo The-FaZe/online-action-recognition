@@ -200,7 +200,7 @@ class TSN_model(nn.Module):
       This function for subtracting consecutive frames to obtain RGB difference
       frames. the length of frames for each segment is usually set to be 5
       (you can change it but this gave the best accuracy in the paper).
-      RGB_tensor : Tensor contian all frames --Size(Batch_size*num_segments*new_length,3,H,W)
+      RGB_tensor : Tensor contian all frames --Size(Batch_size,num_segments*new_length*3,H,W)
       keep_rgb   : Boolean True(Keep an RGB frame [RGB, RGBDiff, RGBDiff, RGBDiff....])
                            False(All frames are RGBDiff)
       RGBDiff_tensor :Tensor in shape of (Batch_size,num_segments,new_length,3,H,W)
@@ -281,7 +281,7 @@ class TSN_model(nn.Module):
       
       
     def forward(self, input): 
-        print('input size :',input.size())
+        #input size (Batch_size,num_segments*new_length*3,W,H)
         #Total num of channels (3 in RGB and 15 in RGBDiff)                                                  
         sample_len = 3* self.new_length                                         
 

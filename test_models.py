@@ -128,7 +128,7 @@ def eval_video(video_data):
     
     with torch.no_grad():
       #reshape data to be in shape of (num_segments*crop_number,length,H,W)
-      input = data.view(-1, length, data.size()[-2:])
+      input = data.view(-1, length, data.size(2), data.size(3))
       #Forword Prop
       output = model(input)
       #Covenrt output tensor to numpy array in shape (num_segments*crop_number,num_class)

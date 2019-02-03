@@ -1,12 +1,13 @@
 import argparse #used for command line interfacing.
 import torch
+import os
 import torchvision
 import torch.nn.parallel #to use multiple GPUs.
 import time
 import shutil
 import torch.optim
 import torch.backends.cudnn as cudnn 
-from torch.nn.utils import clip_grad_norm
+from torch.nn.utils import clip_grad_norm_
 
 from UCF_Dataset import TSNDataset
 from Modified_CNN import TSN_model
@@ -194,8 +195,8 @@ def train(train_loader, model, criterion, optimizer, epoch):
         # Setting async to true avoids cuda synchronization. 
         # So it's mainly for the slight speed gain.
         target = target.cuda()    ##########
-        #input = torch.autograd.Variable(input)
-        #target = torch.autograd.Variable(target)
+        input = torch.autograd.Variable(input)
+        target = torch.autograd.Variable(target)
         # compute output
         output = model(input)
         loss = criterion(output, target) # criterion is the crossEntropyLoss
@@ -217,9 +218,9 @@ def train(train_loader, model, criterion, optimizer, epoch):
         loss.backward()
 
         if args.clip_gradient is not None: 
-            total_norm = clip_grad_norm(model.parameters(), args.clip_gradient)
-            if total_norm > args.clip_gradient:
-                print("clipping gradient: {} with coef {}".format(total_norm, args.clip_gradient / total_norm))
+            total_norm = clip_grad_norm_(model.parameters(), args.clip_gradient)
+            #if total_norm > args.clip_gradient:
+                #print("clipping gradient: {} with coef {}".format(total_norm, args.clip_gradient / total_norm))
 				
         optimizer.step()  
 
@@ -287,7 +288,7 @@ def validate (val_loader,model,ceriterion,logger=None):
                    i, len(val_loader), batch_time=batch_time, loss=losses,
                    top1=top1, top5=top5))
                 
-        print(' * Acc@1 {top1.avg:.3f} Acc@5 {top5.avg:.3f}'.format(top1=top1, top5=top5))
+        print(' * Acc@1 {top1.avg:.3f} Acc@5 {top5.avg:.3f} Loss {loss.avg:.5f}'.format(top1=top1, top5=top5, loss=losses))
         
     return top1.avg
   
@@ -378,4 +379,5 @@ def accuracy(output, target, topk=(1,)):
 
 
 if __name__ == '__main__':
+    os.environ['TORCH_MODEL_ZOO'] = "/home/alex039u2/data/"
     main()

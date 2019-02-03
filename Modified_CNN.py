@@ -1,5 +1,5 @@
 import torchvision
-from torch.nn.init import normal, constant
+from torch.nn.init import normal_, constant_
 from torch import nn
 import numpy as np
 import torch
@@ -113,11 +113,11 @@ class TSN_model(nn.Module):
         #Modify Wighets of newly created Linear layer
         std=0.001
         if self.new_fc == None:
-            normal(getattr(self.base_model, self.last_layer_name).weight,0,std)
-            constant(getattr(self.base_model, self.last_layer_name).bias,0)
+            normal_(getattr(self.base_model, self.last_layer_name).weight,0,std)
+            constant_(getattr(self.base_model, self.last_layer_name).bias,0)
         else:
-            normal(self.new_fc.weight, 0, std)
-            constant(self.new_fc.bias,0)
+            normal_(self.new_fc.weight, 0, std)
+            constant_(self.new_fc.bias,0)
        
     def Modify_RGBDiff_Model(self, base_model, keep_rgb=False):
       
@@ -200,10 +200,10 @@ class TSN_model(nn.Module):
       This function for subtracting consecutive frames to obtain RGB difference
       frames. the length of frames for each segment is usually set to be 5
       (you can change it but this gave the best accuracy in the paper).
-      RGB_tensor : Tensor contian all frames --Size(Batch_size*num_segments*new_length,3,H,W)
+      RGB_tensor : Tensor contian all frames --Size(Batch_size,num_segments*new_length*3,H,W)
       keep_rgb   : Boolean True(Keep an RGB frame [RGB, RGBDiff, RGBDiff, RGBDiff....])
                            False(All frames are RGBDiff)
-      RGBDiff_tensor :Tensor in shape of (1,num_segments,new_length,H,W)
+      RGBDiff_tensor :Tensor in shape of (Batch_size,num_segments,new_length,3,H,W)
       """
       #Reshape the tensor to 
       #(batch_size, Num of segments, Number of picked frames, C, H, W)
@@ -281,11 +281,12 @@ class TSN_model(nn.Module):
       
       
     def forward(self, input): 
+        #input size (Batch_size,num_segments*new_length*3,W,H)
         #Total num of channels (3 in RGB and 15 in RGBDiff)                                                  
         sample_len = 3* self.new_length                                         
 
         if self.modality == 'RGBDiff':
-            #Get RGBDiff Tensor in shape of (1,Num of segments,Number of frames(eg:5),3,H,W)                                          
+            #Get RGBDiff Tensor in shape of (Batch_size,Num of segments,Number of frames(eg:5),3,H,W)                                          
             input = self.extract_rgbDiff(input)
         
         #Reshape the input to be in shape of (Batchsize*num_segments,new_lenghth*3,H,W) to suit the model.

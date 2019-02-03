@@ -1,23 +1,28 @@
 import argparse
-parser = argparse.ArgumentParser(description="PyTorch implementation of Temporal Segment Networks")
+
+#first, create argparser object, then define your arguments
+parser = argparse.ArgumentParser(description='Implementation of Action Recognition Model using TSN architecture')
+
+#fill ArgumentParser with information by using add_argument method. This is used when parse_args() is called
+#The following arguments are positional. You have to specify them.
 parser.add_argument('dataset', type=str, choices=['ucf101', 'hmdb51', 'kinetics'])
-parser.add_argument('modality', type=str, choices=['RGB', 'Flow', 'RGBDiff'])
+parser.add_argument('modality', type=str, choices=['RGB', 'RGBDiff'])
 parser.add_argument('train_list', type=str)
 parser.add_argument('val_list', type=str)
 
-# ========================= Model Configs ==========================
+#Model Configurations.
+#The following arguments are optional. e.g. you should type --arch "your architecture" in the command window
 parser.add_argument('--arch', type=str, default="resnet101")
 parser.add_argument('--num_segments', type=int, default=3)
 parser.add_argument('--consensus_type', type=str, default='avg',
                     choices=['avg', 'max', 'topk', 'identity', 'rnn', 'cnn'])
-parser.add_argument('--k', type=int, default=3)
-
+parser.add_argument('--k', type=int, default=3, help='how many frames should be aggregated')
 parser.add_argument('--dropout', '--do', default=0.5, type=float,
                     metavar='DO', help='dropout ratio (default: 0.5)')
 parser.add_argument('--loss_type', type=str, default="nll",
                     choices=['nll'])
 
-# ========================= Learning Configs ==========================
+#Training Configurations.
 parser.add_argument('--epochs', default=45, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('-b', '--batch-size', default=256, type=int,
@@ -34,14 +39,14 @@ parser.add_argument('--clip-gradient', '--gd', default=None, type=float,
                     metavar='W', help='gradient norm clipping (default: disabled)')
 parser.add_argument('--no_partialbn', '--npb', default=False, action="store_true")
 
-# ========================= Monitor Configs ==========================
+#Print Configurations
 parser.add_argument('--print-freq', '-p', default=20, type=int,
                     metavar='N', help='print frequency (default: 10)')
 parser.add_argument('--eval-freq', '-ef', default=5, type=int,
                     metavar='N', help='evaluation frequency (default: 5)')
 
 
-# ========================= Runtime Configs ==========================
+#Run-time configurations
 parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
 parser.add_argument('--resume', default='', type=str, metavar='PATH',

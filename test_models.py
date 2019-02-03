@@ -11,7 +11,7 @@ import argparse
 import time
 
 import numpy as np
-import torch.nn.Parallel
+import torch.nn.parallel
 import torch.optim
 from sklearn.metrics import confusion_matrix
 

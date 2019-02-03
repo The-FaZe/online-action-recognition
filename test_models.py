@@ -66,12 +66,12 @@ model.load_state_dict(base_dict)
 #specific data augmentation technique mentioned in the paper.
 if args.test_crops == 1:
     cropping = torchvision.transforms.Compose([
-        GroupScale(net.scale_size),
-        GroupCenterCrop(net.input_size),
+        GroupScale(model.scale_size),
+        GroupCenterCrop(model.input_size),
     ])
 elif args.test_crops == 10:
     cropping = torchvision.transforms.Compose([
-        GroupOverSample(net.input_size, net.scale_size)
+        GroupOverSample(model.input_size, model.scale_size)
     ])
 else:
     raise ValueError("Only 1 and 10 crops are supported while we got {}".format(args.test_crops))
@@ -85,7 +85,7 @@ data_loader = torch.utils.data.DataLoader(
                        cropping,
                        Stack(roll=args.arch == 'BNInception'),
                        ToTorchFormatTensor(div=args.arch != 'BNInception'),
-                       GroupNormalize(net.input_mean, net.input_std),
+                       GroupNormalize(model.input_mean, model.input_std),
                    ])),
         batch_size=1, shuffle=False,
         num_workers=args.workers * 2, pin_memory=True)

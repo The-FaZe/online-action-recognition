@@ -18,7 +18,7 @@ from sklearn.metrics import confusion_matrix
 from UCF_Dataset import TSNDataset
 from Modified_CNN import TSN_model
 from transforms import *
-from ops import ConsensusModule
+from basic_ops import ConsensusModule
 
 # options
 parser = argparse.ArgumentParser(

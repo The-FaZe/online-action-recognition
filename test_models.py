@@ -17,7 +17,7 @@ from sklearn.metrics import confusion_matrix
 
 from UCF_Dataset import TSNDataset
 from Modified_CNN import TSN_model
-from transfmors import *
+from transforms import *
 from ops import ConsensusModule
 
 # options

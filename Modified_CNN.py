@@ -203,7 +203,7 @@ class TSN_model(nn.Module):
       RGB_tensor : Tensor contian all frames --Size(Batch_size*num_segments*new_length,3,H,W)
       keep_rgb   : Boolean True(Keep an RGB frame [RGB, RGBDiff, RGBDiff, RGBDiff....])
                            False(All frames are RGBDiff)
-      RGBDiff_tensor :Tensor in shape of (1,num_segments,new_length,H,W)
+      RGBDiff_tensor :Tensor in shape of (Batch_size,num_segments,new_length,3,H,W)
       """
       #Reshape the tensor to 
       #(batch_size, Num of segments, Number of picked frames, C, H, W)
@@ -281,11 +281,12 @@ class TSN_model(nn.Module):
       
       
     def forward(self, input): 
+        print('input size :',input.size())
         #Total num of channels (3 in RGB and 15 in RGBDiff)                                                  
         sample_len = 3* self.new_length                                         
 
         if self.modality == 'RGBDiff':
-            #Get RGBDiff Tensor in shape of (1,Num of segments,Number of frames(eg:5),3,H,W)                                          
+            #Get RGBDiff Tensor in shape of (Batch_size,Num of segments,Number of frames(eg:5),3,H,W)                                          
             input = self.extract_rgbDiff(input)
         
         #Reshape the input to be in shape of (Batchsize*num_segments,new_lenghth*3,H,W) to suit the model.

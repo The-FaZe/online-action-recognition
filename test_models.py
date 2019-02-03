@@ -108,6 +108,39 @@ output = []
 proc_start_time = time.time()
 max_num = args.max_num if args.max_num > 0 else len(data_loader.dataset)
 
+
+def eval_video(video_data):
+    """
+    Evaluate single video
+    video_data : Tuple has 3 elments (data in shape (crop_number,num_segments*length,H,W), label)
+    return     : predictions and labels
+    """
+    data, label = video_data
+    num_crop = args.test_crops
+    #length = new_length*3
+    if args.modality == 'RGB':
+        length = 3
+
+    elif args.modality == 'RGBDiff':
+        length = 15
+    else:
+        raise ValueError("Unknown modality "+args.modality)
+    
+    with torch.no_grad():
+      #reshape data to be in shape of (num_segments*crop_number,length,H,W)
+      input = data.view(-1, length, data.size()[-2:])
+      #Forword Prop
+      output = model(input)
+      #Covenrt output tensor to numpy array in shape (num_segments*crop_number,num_class)
+      output_np = output.data.cpu().numpy().copy()
+      #Reshape numpy array to (num_crop,num_segments,num_classes)
+      output_np = output_np.reshape((num_crop, args.test_segments, num_class))
+      #Take mean of cropped images to be in shape (num_segments,1,num_classes)
+      output_np = output_np.mean(axis=0).reshape((args.test_segments,1,num_class))
+        
+    return output_np, label[0]
+
+
 #i = 0 --> number of videos, data is x, and label is y
 for i, (data, label) in enumerate(data_loader):
     #if we reached the end of the videos or args.max_num, exit the loop
@@ -154,34 +187,5 @@ if args.save_scores is not None:
 
 
 
-def eval_video(video_data):
-    """
-    Evaluate single video
-    video_data : Tuple has 3 elments (data in shape (crop_number,num_segments*length,H,W), label)
-    return     : predictions and labels
-    """
-    data, label = video_data
-    num_crop = args.test_crops
-    #length = new_length*3
-    if args.modality == 'RGB':
-        length = 3
 
-    elif args.modality == 'RGBDiff':
-        length = 15
-    else:
-        raise ValueError("Unknown modality "+args.modality)
-    
-    with torch.no_grad():
-      #reshape data to be in shape of (num_segments*crop_number,length,H,W)
-      input = data.view(-1, length, data.size()[-2:])
-      #Forword Prop
-      output = model(input)
-      #Covenrt output tensor to numpy array in shape (num_segments*crop_number,num_class)
-      output_np = output.data.cpu().numpy().copy()
-      #Reshape numpy array to (num_crop,num_segments,num_classes)
-      output_np = output_np.reshape((num_crop, args.test_segments, num_class))
-      #Take mean of cropped images to be in shape (num_segments,1,num_classes)
-      output_np = output_np.mean(axis=0).reshape((args.test_segments,1,num_class))
-        
-    return output_np, label[0]
 

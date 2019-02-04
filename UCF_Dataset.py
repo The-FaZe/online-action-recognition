@@ -108,28 +108,27 @@ class TSNDataset(data.Dataset):
         return np.array(sample_indices)+1
     
     
-    def Vid2Frames(self, info, indices):
-        '''
-        info : Object has info about one video
-        indices  : Indices for the chosen frames
-        '''
-        images = []
-        Expand_indices = []
+    def _load_image(self, directory, idx):
+        if self.modality == 'RGB' or self.modality == 'RGBDiff':
+            return [Image.open(os.path.join(directory, self.image_prefix.format(idx))).convert('RGB')]
+        elif self.modality == 'Flow':
+            x_img = Image.open(os.path.join(directory, self.image_tmpl.format('x', idx))).convert('L')
+            y_img = Image.open(os.path.join(directory, self.image_tmpl.format('y', idx))).convert('L')
 
-        for idx in indices: 
-            #For every frame in the chosen frames                                                                                
-            for f in range(self.new_length): 
-            #If new lenght is more than 1 , we'll stack num of frames from 1 seg
-              Expand_indices.append(idx+f)
-              if idx+f <= info.num_frames:                                                                     
-                Img = [Image.open(os.path.join(info.path,self.image_prefix.format(idx+f))).convert('RGB')]                
-                images.extend(Img)                                                                                         
-              else:
-                images.extend(Img)                                                                                        
-            
-            #Apply transform stuff on the chosen frames
-            processed_frames = self.transform(images)                                   
-        return processed_frames , info.label 
+            return [x_img, y_img]
+    
+    def Vid2Frames(self, record, indices):
+        images = list()
+        for seg_ind in indices:
+            p = int(seg_ind)
+            for i in range(self.new_length):
+                seg_imgs = self._load_image(record.path, p)
+                images.extend(seg_imgs)
+                if p < record.num_frames:
+                    p += 1
+
+        process_data = self.transform(images)
+        return process_data, record.label 
         
           
     def __getitem__(self,idx):

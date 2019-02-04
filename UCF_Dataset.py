@@ -108,18 +108,18 @@ class TSNDataset(data.Dataset):
         return np.array(sample_indices)+1
     
     
-    def Vid2Frames(self, record, indices):
+    def Vid2Frames(self, info, indices):
         images = list()
         for seg_ind in indices:
             p = int(seg_ind)
             for i in range(self.new_length):
-                seg_imgs = [Image.open(os.path.join(record.path, self.image_prefix.format(p))).convert('RGB')]
+                seg_imgs = [Image.open(os.path.join(info.path, self.image_prefix.format(p))).convert('RGB')]
                 images.extend(seg_imgs)
-                if p < record.num_frames:
+                if p < info.num_frames:
                     p += 1
 
         process_data = self.transform(images)
-        return process_data, record.label 
+        return process_data, info.label 
         
           
     def __getitem__(self,idx):

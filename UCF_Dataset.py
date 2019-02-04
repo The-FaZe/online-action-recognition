@@ -113,7 +113,7 @@ class TSNDataset(data.Dataset):
         for seg_ind in indices:
             p = int(seg_ind)
             for i in range(self.new_length):
-                seg_imgs = [Image.open(os.path.join(directory, self.image_prefix.format(idx))).convert('RGB')]
+                seg_imgs = [Image.open(os.path.join(record.path, self.image_prefix.format(p))).convert('RGB')]
                 images.extend(seg_imgs)
                 if p < record.num_frames:
                     p += 1

@@ -201,8 +201,12 @@ def train(train_loader, model, criterion, optimizer, epoch):
         target = target.cuda()    ##########
         input = torch.autograd.Variable(input)
         target = torch.autograd.Variable(target)
+
+        print(subprocess.run(["nvidia-smi"]))
         # compute output
         output = model(input)
+        print(subprocess.run(["nvidia-smi"]))
+    
         loss = criterion(output, target) # criterion is the crossEntropyLoss
 
         # measure accuracy and record loss

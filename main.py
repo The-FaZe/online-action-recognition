@@ -143,7 +143,7 @@ def main():
     #train for one epoch
     train(train_loader, model, criterion, optimizer, epoch)
     
-    print(subprocess.run(["nvidia-smi"]))
+    subprocess.run(["nvidia-smi"])
 	
     #evaluate on validation set
     if (epoch+1) % args.eval_freq == 0 or epoch == args.epochs - 1:
@@ -202,10 +202,10 @@ def train(train_loader, model, criterion, optimizer, epoch):
         input = torch.autograd.Variable(input)
         target = torch.autograd.Variable(target)
 
-        print(subprocess.run(["nvidia-smi"]))
+        subprocess.run(["nvidia-smi"])
         # compute output
         output = model(input)
-        print(subprocess.run(["nvidia-smi"]))
+        subprocess.run(["nvidia-smi"])
     
         loss = criterion(output, target) # criterion is the crossEntropyLoss
 

@@ -14,6 +14,8 @@ from Modified_CNN import TSN_model
 from transforms import *
 from parser_commands import parser
 
+import subprocess 
+
 #specify best_acc1 as a variable to deteremine the best accuracy achieved during training.
 best_acc1 = 0
 
@@ -140,7 +142,9 @@ def main():
 
     #train for one epoch
     train(train_loader, model, criterion, optimizer, epoch)
-
+    
+    print(subprocess.run(["nvidia-smi"]))
+	
     #evaluate on validation set
     if (epoch+1) % args.eval_freq == 0 or epoch == args.epochs - 1:
       acc1 = validate(val_loader, model, criterion, (epoch+1) * len(train_loader))

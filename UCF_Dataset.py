@@ -108,21 +108,12 @@ class TSNDataset(data.Dataset):
         return np.array(sample_indices)+1
     
     
-    def _load_image(self, directory, idx):
-        if self.modality == 'RGB' or self.modality == 'RGBDiff':
-            return [Image.open(os.path.join(directory, self.image_prefix.format(idx))).convert('RGB')]
-        elif self.modality == 'Flow':
-            x_img = Image.open(os.path.join(directory, self.image_tmpl.format('x', idx))).convert('L')
-            y_img = Image.open(os.path.join(directory, self.image_tmpl.format('y', idx))).convert('L')
-
-            return [x_img, y_img]
-    
     def Vid2Frames(self, record, indices):
         images = list()
         for seg_ind in indices:
             p = int(seg_ind)
             for i in range(self.new_length):
-                seg_imgs = self._load_image(record.path, p)
+                seg_imgs = [Image.open(os.path.join(directory, self.image_prefix.format(idx))).convert('RGB')]
                 images.extend(seg_imgs)
                 if p < record.num_frames:
                     p += 1

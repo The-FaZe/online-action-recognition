@@ -95,7 +95,7 @@ class TSN_model(nn.Module):
         #BNInception doesn't exist in torchvision models, so we have to get it from net folder
         elif base_model_name == 'BNInception':
             import net
-            self.base_model = net.bn_inception()
+            self.base_model = net.bn_inception(pretrained = True)
             self.last_layer_name = 'last_linear'
             self.input_size = 224
             self.input_mean = [104, 117, 128]

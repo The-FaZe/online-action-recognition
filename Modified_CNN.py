@@ -96,7 +96,7 @@ class TSN_model(nn.Module):
         elif base_model_name == 'BNInception':
             import net
             self.base_model = net.bn_inception()
-            self.last_layer_name = 'fc'
+            self.last_layer_name = 'last_linear'
             self.input_size = 224
             self.input_mean = [104, 117, 128]
             self.input_std = [1]

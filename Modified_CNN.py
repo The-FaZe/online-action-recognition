@@ -92,10 +92,10 @@ class TSN_model(nn.Module):
                 #Expand the list with the average 0.452                     
                 self.input_std = self.input_std + [np.mean(self.input_std) * 2] * 3 * self.new_length 
                 
-        #BNInception doesn't exist in torchvision models, so we have to get it from tf_model_zoo
+        #BNInception doesn't exist in torchvision models, so we have to get it from net folder
         elif base_model_name == 'BNInception':
-            import tf_model_zoo
-            self.base_model = getattr(tf_model_zoo, base_model_name)()
+            import net
+            self.base_model = net.bn_inception(pretrained=True)
             self.base_model.last_layer_name = 'fc'
             self.input_size = 224
             self.input_mean = [104, 117, 128]

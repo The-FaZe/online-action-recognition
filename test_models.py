@@ -127,9 +127,10 @@ def eval_video(video_data):
         raise ValueError("Unknown modality "+args.modality)
     
     with torch.no_grad():
-      print('Input size :',input.size())
+      print('Data size :',data.size())
       #reshape data to be in shape of (num_segments*crop_number,length,H,W)
       input = data.view(-1, length, data.size(2), data.size(3))
+      print('input size :',input.size())
       #Forword Prop
       output = model(input)
       print('out size :',out.size())

@@ -133,7 +133,7 @@ def eval_video(video_data):
       print('input size :',input.size())
       #Forword Prop
       output = model(input)
-      print('out size :',out.size())
+      print('out size :',output.size())
       #Covenrt output tensor to numpy array in shape (num_segments*crop_number,num_class)
       output_np = output.data.cpu().numpy().copy()
       #Reshape numpy array to (num_crop,num_segments,num_classes)

@@ -205,7 +205,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
         #subprocess.run(["nvidia-smi"])
         # compute output
         output = model(input)
-        #subprocess.run(["nvidia-smi"])
+        subprocess.run(["nvidia-smi"])
     
         loss = criterion(output, target) # criterion is the crossEntropyLoss
 

@@ -9,6 +9,7 @@ Original file is located at
 
 import argparse
 import time
+import pandas as pd
 
 import numpy as np
 import torch.nn.parallel
@@ -157,9 +158,6 @@ for i, (data, label) in enumerate(data_loader):
 video_pred = [np.argmax(np.mean(x[0], axis=0)) for x in output]
 #this outputs the ground truth (right actions)
 video_labels = [x[1] for x in output]
-print(np.shape(video_pred))
-print(np.shape(video_labels))
-
 
 #compute accuracy using confusion matrix
 cf = confusion_matrix(video_labels, video_pred).astype(float)
@@ -169,7 +167,10 @@ print('class_count',class_count)
 class_right = np.diag(cf)
 print('class_right',class_right)
 class_acc = class_right / class_count
-
+y_actu = pd.Series(video_labels, name='Actual')
+y_pred = pd.Series(video_pred, name='Predicted')
+df_confusion = pd.crosstab(y_actu, y_pred)
+print(df_confusion)
 print(class_acc)
 print('Accuracy {:.02f}%'.format(np.mean(class_acc)*100))
 

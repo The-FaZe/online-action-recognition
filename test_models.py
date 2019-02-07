@@ -120,7 +120,6 @@ def eval_video(video_data):
     #length = new_length*3
     if args.modality == 'RGB':
         length = 3
-
     elif args.modality == 'RGBDiff':
         length = 15
     else:
@@ -176,12 +175,15 @@ if args.save_scores is not None:
 
     reorder_output = [None] * len(output)
     reorder_label = [None] * len(output)
-
+    
+    #The saved file will have scores and labels. scores has a list of tuples equal to the number of videos.
+    #Each tuple is a matrix of shape (num of segments, num of classes) which indicates the output of CNN.
+    #labels is a list of the ground truth of each video (the right action).
     for i in range(len(output)):
         idx = order_dict[name_list[i]]
         reorder_output[idx] = output[i]
         reorder_label[idx] = video_labels[i]
-
+    
     np.savez(args.save_scores, scores=reorder_output, labels=reorder_label)
 
 

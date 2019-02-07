@@ -160,8 +160,11 @@ video_labels = [x[1] for x in output]
 
 #compute accuracy using confusion matrix
 cf = confusion_matrix(video_labels, video_pred).astype(float)
+print(cf)
 class_count = cf.sum(axis=1)
+print('class_count',class_count)
 class_right = np.diag(cf)
+print('class_right',class_right)
 class_acc = class_right / class_count
 
 print(class_acc)

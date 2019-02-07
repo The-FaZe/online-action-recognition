@@ -177,7 +177,7 @@ if args.save_scores is not None:
     reorder_label = [None] * len(output)
     
     #The saved file will have scores and labels. scores has a list of tuples equal to the number of videos.
-    #Each tuple is a matrix of shape (num of segments, num of classes) which indicates the output of CNN.
+    #Each tuple is a 2-element tuple,1st element is an array of shape (num of segments,1,num of classes) which indicates the output of CNN.
     #labels is a list of the ground truth of each video (the right action).
     for i in range(len(output)):
         idx = order_dict[name_list[i]]

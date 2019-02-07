@@ -127,21 +127,16 @@ def eval_video(video_data):
         raise ValueError("Unknown modality "+args.modality)
     
     with torch.no_grad():
-      print('Data size :',data.size())
       #reshape data to be in shape of (num_segments*crop_number,length,H,W)
       input = data.view(-1, length, data.size(2), data.size(3))
-      print('input size :',input.size())
       #Forword Prop
       output = model(input)
-      print('out size :',output.size())
       #Covenrt output tensor to numpy array in shape (num_segments*crop_number,num_class)
       output_np = output.data.cpu().numpy().copy()
       #Reshape numpy array to (num_crop,num_segments,num_classes)
       output_np = output_np.reshape((num_crop, args.test_segments, num_class))
-      print('after reshape :', np.shape(output_np))
       #Take mean of cropped images to be in shape (num_segments,1,num_classes)
       output_np = output_np.mean(axis=0).reshape((args.test_segments,1,num_class))
-      print('after last reshape :', np.shape(output_np))
     return output_np, label[0]
 
 

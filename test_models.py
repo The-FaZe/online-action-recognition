@@ -157,6 +157,9 @@ for i, (data, label) in enumerate(data_loader):
 video_pred = [np.argmax(np.mean(x[0], axis=0)) for x in output]
 #this outputs the ground truth (right actions)
 video_labels = [x[1] for x in output]
+print(np.shape(video_pred))
+print(np.shape(video_labels))
+
 
 #compute accuracy using confusion matrix
 cf = confusion_matrix(video_labels, video_pred).astype(float)

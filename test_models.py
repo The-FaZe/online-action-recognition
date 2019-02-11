@@ -21,6 +21,9 @@ from Modified_CNN import TSN_model
 from transforms import *
 from basic_ops import ConsensusModule
 
+import os
+os.environ['TORCH_MODEL_ZOO'] = "/home/alex039u2/data/" #inzializing torch main directory
+
 # options
 parser = argparse.ArgumentParser(
     description="Standard video-level testing")

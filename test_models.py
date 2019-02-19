@@ -159,7 +159,7 @@ for i, (data, label) in enumerate(data_loader):
     count_time = time.time() - proc_start_time
     indxes = np.flip(np.argsort(result[0].mean(axis=0)),axis = 1)[ 0 , : 5]
     topscores = np.flip(np.sort(result[0].mean(axis=0)),axis = 1)[ 0 , : 5]
-    print('total {}/{} - average {:.3f} - sec/video - Top5 scores: {} - Top5 actions: {} - True Labal: {}'.format(i+1,
+    print('total {}/{} - averageTime {:.3f} sec/video - Top5 scores: {} - Top5 actions: {} - True Labal: {}'.format(i+1,
                                                                                                                        total_num,float(count_time) / (i+1),
                                                                                                                        topscores,indxes,result[1]))
 
@@ -171,7 +171,7 @@ video_labels = [x[1] for x in output]
 
 #compute accuracy using confusion matrix
 cf = confusion_matrix(video_labels, video_pred).astype(float)
-print(cf)
+
 class_count = cf.sum(axis=1)
 
 class_right = np.diag(cf)

@@ -162,8 +162,8 @@ for i, (data, label) in enumerate(data_loader):
                                                                     float(count_time) / (i+1)))
     
     indxes = np.flip(np.argsort(result[0].mean(axis=0)),axis = 1)[ : , : 5]
-    topscores = np.flip(result[0].mean(axis=0),axis = 1)[ : , : 5]
-    print('Top 5 scores : {} -- Top 5 actions : {} -- True Labal is : {} '.format(topscores,indxes,result[1]))
+    topscores = np.flip(np.max(result[0].mean(axis=0),axis=1),axis = 1)[ : , : 5]
+    print('Top 5 scores : {:.3f} -- Top 5 actions : {} -- True Labal is : {} '.format(topscores,indxes,result[1]))
     
     #for k in np.argsort(result[0])[::-1][:5]:
         #print('%-22s %0.2f%%' % (Label[str(k+1)], result[0][k]))

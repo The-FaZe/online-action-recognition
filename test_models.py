@@ -146,7 +146,7 @@ def eval_video(video_data):
       output_np = output_np.mean(axis=0).reshape((args.test_segments,1,num_class))
     return output_np, label[0]
 
-label = IdxtoClass(args.classInd_file)
+Label = IdxtoClass(args.classInd_file)
 
 #i = 0 --> number of videos, data is x, and label is y
 for i, (data, label) in enumerate(data_loader):
@@ -162,8 +162,8 @@ for i, (data, label) in enumerate(data_loader):
                                                                     float(count_time) / (i+1)))
     
     print('Top 5 actions: ')
-    for k in np.argsort(output)[::-1][:5]:
-        print('%-22s %0.2f%%' % (label[str(k+1)], output[k] * 100))
+    for k in np.argsort(result[0])[::-1][:5]:
+        print('%-22s %0.2f%%' % (Label[str(k+1)], result[0][k]))
 
 
 #this outputs the indices of the classified actions which can be missclassified

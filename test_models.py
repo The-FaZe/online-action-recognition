@@ -157,13 +157,11 @@ for i, (data, label) in enumerate(data_loader):
     result = eval_video((data, label))
     output.append(result)
     count_time = time.time() - proc_start_time
-    print('video {} done, total {}/{}, average {} sec/video'.format(i, i+1,
-                                                                    total_num,
-                                                                    float(count_time) / (i+1)))
-    
     indxes = np.flip(np.argsort(result[0].mean(axis=0)),axis = 1)[ 0 , : 5]
     topscores = np.flip(np.sort(result[0].mean(axis=0)),axis = 1)[ 0 , : 5]
-    print('Top 5 scores : {} -- Top 5 actions : {} -- True Labal is : {} '.format(topscores,indxes,result[1]))
+    print('total {}/{} - average {:.3f} - sec/video - Top5 scores: {} - Top5 actions: {} - True Labal: {}'.format(i+1,
+                                                                                                                       total_num,float(count_time) / (i+1),
+                                                                                                                       topscores,indxes,result[1]))
 
 
 #this outputs the indices of the classified actions which can be missclassified

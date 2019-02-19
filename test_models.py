@@ -102,6 +102,19 @@ output = []
 proc_start_time = time.time()
 max_num = args.max_num if args.max_num > 0 else len(data_loader.dataset)
 
+def IdxtoClass(ClassIndDir):
+  action_label={}
+  with open(ClassIndDir) as f:
+      content = f.readlines()
+      content = [x.strip('\r\n') for x in content]
+  f.close()
+
+  for line in content:
+      label,action = line.split(' ')
+      if action not in action_label.keys():
+          action_label[label]=action
+          
+  return action_label
 
 def eval_video(video_data):
     """
@@ -132,6 +145,7 @@ def eval_video(video_data):
       output_np = output_np.mean(axis=0).reshape((args.test_segments,1,num_class))
     return output_np, label[0]
 
+label = IdxtoClass('classInd.txt')
 
 #i = 0 --> number of videos, data is x, and label is y
 for i, (data, label) in enumerate(data_loader):
@@ -145,6 +159,10 @@ for i, (data, label) in enumerate(data_loader):
     print('video {} done, total {}/{}, average {} sec/video'.format(i, i+1,
                                                                     total_num,
                                                                     float(count_time) / (i+1)))
+    
+    print('Top 5 actions: ')
+    for k in np.argsort(output)[::-1][:5]:
+        print('%-22s %0.2f%%' % (label[str(k+1)], output[k] * 100))
 
 
 #this outputs the indices of the classified actions which can be missclassified
@@ -160,10 +178,6 @@ print('class_count',class_count)
 class_right = np.diag(cf)
 print('class_right',class_right)
 class_acc = class_right / class_count
-
-print('Top 5 actions: ')
-for i in np.argsort(output)[::-1][:5]:
-  print('%-22s %0.2f%%' % (label[str(i+1)], output[i] * 100))
 
 print(class_acc)
 print('Accuracy {:.02f}%'.format(np.mean(class_acc)*100))

@@ -163,7 +163,7 @@ for i, (data, label) in enumerate(data_loader):
     
     indxes = np.flip(np.argsort(result[0].mean(axis=0)),axis = 1)[ 0 , : 5]
     topscores = np.flip(np.sort(result[0].mean(axis=0)),axis = 1)[ 0 , : 5]
-    print('Top 5 scores : {:.3f} -- Top 5 actions : {} -- True Labal is : {} '.format(topscores,indxes,result[1]))
+    print('Top 5 scores : {} -- Top 5 actions : {} -- True Labal is : {} '.format(topscores,indxes,result[1]))
 
 
 #this outputs the indices of the classified actions which can be missclassified

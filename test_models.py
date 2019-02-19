@@ -135,8 +135,6 @@ def eval_video(video_data):
 
 #i = 0 --> number of videos, data is x, and label is y
 for i, (data, label) in enumerate(data_loader):
-    print('data is: ', data.shape)
-    print('data[0] is: ', data[0].shape)
     #if we reached the end of the videos or args.max_num, exit the loop
     if i >= max_num:
         break
@@ -162,6 +160,10 @@ print('class_count',class_count)
 class_right = np.diag(cf)
 print('class_right',class_right)
 class_acc = class_right / class_count
+
+print('Top 5 actions: ')
+for i in np.argsort(output)[::-1][:5]:
+  print('%-22s %0.2f%%' % (label[str(i+1)], output[i] * 100))
 
 print(class_acc)
 print('Accuracy {:.02f}%'.format(np.mean(class_acc)*100))

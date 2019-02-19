@@ -162,8 +162,9 @@ for i, (data, label) in enumerate(data_loader):
                                                                     float(count_time) / (i+1)))
     
     print('Top 5 actions: ')
-    for k in np.argsort(result[0])[::-1][:5]:
-        print('%-22s %0.2f%%' % (Label[str(k+1)], result[0][k]))
+    np.argsort(result[0])[::-1][:5]
+    #for k in np.argsort(result[0])[::-1][:5]:
+        #print('%-22s %0.2f%%' % (Label[str(k+1)], result[0][k]))
 
 
 #this outputs the indices of the classified actions which can be missclassified

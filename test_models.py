@@ -161,8 +161,8 @@ for i, (data, label) in enumerate(data_loader):
                                                                     total_num,
                                                                     float(count_time) / (i+1)))
     
-    print('Top 5 actions: ')
-    np.argsort(result[0])[::-1][:5]
+    print('Top 5 actions: ' , np.argsort(result[0])[::-1][:5])
+    
     #for k in np.argsort(result[0])[::-1][:5]:
         #print('%-22s %0.2f%%' % (Label[str(k+1)], result[0][k]))
 
@@ -176,9 +176,9 @@ video_labels = [x[1] for x in output]
 cf = confusion_matrix(video_labels, video_pred).astype(float)
 print(cf)
 class_count = cf.sum(axis=1)
-print('class_count',class_count)
+
 class_right = np.diag(cf)
-print('class_right',class_right)
+
 class_acc = class_right / class_count
 
 print(class_acc)

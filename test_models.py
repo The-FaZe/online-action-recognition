@@ -160,8 +160,9 @@ for i, (data, label) in enumerate(data_loader):
     print('video {} done, total {}/{}, average {} sec/video'.format(i, i+1,
                                                                     total_num,
                                                                     float(count_time) / (i+1)))
+    indxes = np.flip(np.argsort(result[0].mean(axis=0)),axis = 1)[ : , : 5]
     
-    print('Top 5 actions: ' , np.argsort(result[0].mean(axis=0)[::-1][:5])
+    print('Top 5 actions: ' , indxes)
     
     #for k in np.argsort(result[0])[::-1][:5]:
         #print('%-22s %0.2f%%' % (Label[str(k+1)], result[0][k]))

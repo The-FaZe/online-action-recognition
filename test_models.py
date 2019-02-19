@@ -135,6 +135,7 @@ def eval_video(video_data):
 
 #i = 0 --> number of videos, data is x, and label is y
 for i, (data, label) in enumerate(data_loader):
+    print('data is: ', data)
     #if we reached the end of the videos or args.max_num, exit the loop
     if i >= max_num:
         break

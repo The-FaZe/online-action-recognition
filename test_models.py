@@ -35,6 +35,7 @@ parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
 parser.add_argument('--gpus', nargs='+', type=int, default=None)
 parser.add_argument('--flow_prefix', type=str, default='')
+parser.add_argument('--classInd_file', type=str, default='')
 
 args = parser.parse_args()
 
@@ -145,7 +146,7 @@ def eval_video(video_data):
       output_np = output_np.mean(axis=0).reshape((args.test_segments,1,num_class))
     return output_np, label[0]
 
-label = IdxtoClass('classInd.txt')
+label = IdxtoClass(args.classInd_file)
 
 #i = 0 --> number of videos, data is x, and label is y
 for i, (data, label) in enumerate(data_loader):

@@ -114,7 +114,7 @@ class TSN_model(nn.Module):
                 else:
                   state_dictTemp[k]=v
              
-              self.load_state_dict(state_dict) 
+              self.load_state_dict(state_dictTemp) 
             
             self.last_layer_name = 'last_linear'
             self.input_size = 224

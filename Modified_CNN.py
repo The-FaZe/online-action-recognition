@@ -97,6 +97,14 @@ class TSN_model(nn.Module):
         elif base_model_name == 'BNInception':
             import net
             self.base_model = net.bn_inception(pretrained = True)
+            
+            if self.KinWeights :
+              print('Loading Kinetics weights')
+              state_dict = torch.load(self.KinWeights)
+              for k, v in state_dict.items():
+                state_dict[k] = torch.squeeze(v, dim=0)
+              self.load_state_dict(state_dict) 
+            
             self.last_layer_name = 'last_linear'
             self.input_size = 224
             self.input_mean = [104, 117, 128]
@@ -110,15 +118,7 @@ class TSN_model(nn.Module):
         else:
             raise ValueError('Unknown base model: {}'.format(base_model_name))
             
-            
-        if base_model_name == 'BNInception' and self.KinWeights :
-          print('Loading Kinetics weights')
-          state_dict = torch.load(self.KinWeights)
-          
-          for k, v in state_dict.items():
-            state_dict[k] = torch.squeeze(v, dim=0)
-
-          self.load_state_dict(state_dict)         
+                    
         
         #Get the input size for the last layer of CNN
         features_dim = getattr(self.base_model, self.last_layer_name).in_features                       

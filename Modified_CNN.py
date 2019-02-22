@@ -26,6 +26,7 @@ class TSN_model(nn.Module):
         self.dropout = dropout
         self.crop_num = crop_num                                                                                                       
         self.partial_bn = partial_bn
+        self.KinWeights = KinWeights
 
         if not before_softmax and consensus_type != 'avg':                          
             raise ValueError("Only avg consensus can be used after Softmax")
@@ -110,7 +111,7 @@ class TSN_model(nn.Module):
             raise ValueError('Unknown base model: {}'.format(base_model_name))
             
             
-        if base_model_name == 'BNInception' and KinWeights:
+        if base_model_name == 'BNInception' and self.KinWeights :
           print('Loading Kinetics weights')
           Weights = torch.load(KinWeights)
           base_dict = {'.'.join(k.split('.')[1:]): v for k,v in list(Weights.items())}

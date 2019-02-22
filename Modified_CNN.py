@@ -103,6 +103,7 @@ class TSN_model(nn.Module):
               state_dict = torch.load(self.KinWeights)
               for k, v in state_dict.items():
                 state_dict[k] = torch.squeeze(v, dim=0)
+              state_dict = {'base_model.'+k : v for k,v in state_dict.items()}
               self.load_state_dict(state_dict) 
             
             self.last_layer_name = 'last_linear'

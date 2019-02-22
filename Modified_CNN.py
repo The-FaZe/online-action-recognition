@@ -111,7 +111,7 @@ class TSN_model(nn.Module):
             
             
         if base_model_name == 'BNInception' and KinWeights:
-          print(Loading Kinetics weights)
+          print('Loading Kinetics weights')
           Weights = torch.load(KinWeights)
           base_dict = {'.'.join(k.split('.')[1:]): v for k,v in list(Weights.items())}
           self.load_state_dict(base_dict)         

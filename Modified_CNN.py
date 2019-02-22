@@ -106,13 +106,13 @@ class TSN_model(nn.Module):
               state_dict = {'base_model.'+k : v for k,v in state_dict.items()}
               
               for k, v in state_dict.items():
-                state_dict[k] = torch.squeeze(v, dim=0)
+                
                 if k == 'base_model.fc_action.weight':
-                  state_dictTemp["base_model.last_linear.weight"] = v
+                  state_dictTemp["base_model.last_linear.weight"] = torch.squeeze(v, dim=0)
                 elif k == 'base_model.fc_action.bias':
-                  state_dictTemp["base_model.last_linear.bias"] = v
+                  state_dictTemp["base_model.last_linear.bias"] = torch.squeeze(v, dim=0)
                 else:
-                  state_dictTemp[k]=v
+                  state_dictTemp[k]=torch.squeeze(v, dim=0)
              
               self.load_state_dict(state_dictTemp) 
             

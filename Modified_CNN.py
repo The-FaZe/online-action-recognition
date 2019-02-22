@@ -12,7 +12,7 @@ class TSN_model(nn.Module):
     def __init__ (self, num_classes, num_segments, modality,
                   consensus_type='avg', base_model_name='resnet18',
                   new_length=None, before_softmax=True, dropout=0.8,
-                  crop_num=1, partial_bn=True):
+                  crop_num=1, partial_bn=True , KinWeights=''):
         
         #Excute all nn.Moudle __init__ fuction stuff before anything as a base class.
         super(TSN_model, self).__init__()                                          
@@ -108,6 +108,13 @@ class TSN_model(nn.Module):
               
         else:
             raise ValueError('Unknown base model: {}'.format(base_model_name))
+            
+            
+        if base_model_name == 'BNInception' and KinWeights:
+          print(Loading Kinetics weights)
+          Weights = torch.load(KinWeights)
+          base_dict = {'.'.join(k.split('.')[1:]): v for k,v in list(Weights.items())}
+          self.load_state_dict(base_dict)         
         
         #Get the input size for the last layer of CNN
         features_dim = getattr(self.base_model, self.last_layer_name).in_features                       

@@ -97,12 +97,19 @@ class TSN_model(nn.Module):
         elif base_model_name == 'BNInception':
             import net
             self.base_model = net.bn_inception(pretrained = True)
-            
-            state_dictTemp = {}
+           
             if self.KinWeights :
+              state_dictTemp = {}
               print('Loading Kinetics weights')
-              
               state_dict = torch.load(self.KinWeights)
+              
+              if self.modality == 'RGBDiff':
+                print('Convert flow weights to RGBDiff weights')
+                new_weights = state_dict['conv1_7x7_s2.weight'].mean(dim=1,keepdim=True).expand([64,3,7,7]).contiguous()
+                frist_layer = getattr(model,'conv1_7x7_s2')
+                frist_layer.weight.data = new_weights
+                frist_layer.weight.bias = state_dict['conv1_7x7_s2.bias']
+              
               state_dict = {'base_model.'+ k : v for k,v in state_dict.items()}
               
               for k, v in state_dict.items():
@@ -140,7 +147,7 @@ class TSN_model(nn.Module):
             self.new_fc = None
             print('The modified linear layer is :', getattr(self.base_model, self.last_layer_name))  
             
-        #In case of dropout, خnly nn.Dropout will be added and nn.Linear will be prepared to be added later
+        #In case of dropout, only nn.Dropout will be added and nn.Linear will be prepared to be added later
         else:
             setattr(self.base_model, self.last_layer_name, nn.Dropout(self.dropout))
             self.new_fc = nn.Linear(features_dim, num_classes)

@@ -29,7 +29,7 @@ def main():
     raise ValueError('Unknown dataset: ' + args.dataset)
     
   model = TSN_model(num_classes, args.num_segments, args.modality, base_model_name=args.arch,
-                   consensus_type=args.consensus_type, dropout=args.dropout, partial_bn=not args.no_partialbn)
+                   consensus_type=args.consensus_type, dropout=args.dropout, partial_bn=not args.no_partialbn, KinWeights = args.KinWeights)
   
   crop_size = model.crop_size
   scale_size = model.scale_size

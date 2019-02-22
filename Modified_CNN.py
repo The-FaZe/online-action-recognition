@@ -79,7 +79,7 @@ class TSN_model(nn.Module):
         #add other architectures later
         if 'resnet' in base_model_name:
             #Load pretrained model
-            self.base_model = getattr(torchvision.models, base_model_name)(nb_classes = 400,pretrained=True)     
+            self.base_model = getattr(torchvision.models, base_model_name)(pretrained=True)     
             self.last_layer_name = 'fc'
             #set the input size for the model
             self.input_size = 224                                                               
@@ -108,9 +108,9 @@ class TSN_model(nn.Module):
               for k, v in state_dict.items():
                 
                 if k == 'base_model.fc_action.weight':
-                  state_dictTemp["base_model.last_linear.weight"] = torch.squeeze(v, dim=0)
+                  state_dictTemp["base_model.last_linear.weight"] = torch.zeros([400, 1024])
                 elif k == 'base_model.fc_action.bias':
-                  state_dictTemp["base_model.last_linear.bias"] = torch.squeeze(v, dim=0)
+                  state_dictTemp["base_model.last_linear.bias"] = torch.zeros([400])
                 else:
                   state_dictTemp[k]=torch.squeeze(v, dim=0)
              

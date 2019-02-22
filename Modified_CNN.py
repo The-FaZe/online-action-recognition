@@ -79,7 +79,7 @@ class TSN_model(nn.Module):
         #add other architectures later
         if 'resnet' in base_model_name:
             #Load pretrained model
-            self.base_model = getattr(torchvision.models, base_model_name)(pretrained=True)     
+            self.base_model = getattr(torchvision.models, base_model_name)(nb_classes = 400,pretrained=True)     
             self.last_layer_name = 'fc'
             #set the input size for the model
             self.input_size = 224                                                               

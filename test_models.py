@@ -55,8 +55,8 @@ model = TSN_model(num_class, 1, args.modality, base_model_name=args.arch,
 checkpoint = torch.load(args.weights)
 print("epoch {}, best acc1@: {}" .format(checkpoint['epoch'], checkpoint['best_acc1']))
 
-#base_dict = {'.'.join(k.split('.')[1:]): v for k,v in list(checkpoint['state_dict'].items())}
-model.load_state_dict(checkpoint['state_dict'])
+base_dict = {'.'.join(k.split('.')[1:]): v for k,v in list(checkpoint['state_dict'].items())}
+model.load_state_dict(base_dict)
 
 #specific data augmentation technique mentioned in the paper.
 if args.test_crops == 1:

@@ -9,7 +9,7 @@ parser.add_argument('dataset', type=str, choices=['ucf101', 'hmdb51', 'kinetics'
 parser.add_argument('modality', type=str, choices=['RGB', 'RGBDiff'])
 parser.add_argument('train_list', type=str)
 parser.add_argument('val_list', type=str)
-
+parser.add_argument('KinpreTr', type=str)
 #Model Configurations.
 #The following arguments are optional. e.g. you should type --arch "your architecture" in the command window
 parser.add_argument('--arch', type=str, default="resnet101")

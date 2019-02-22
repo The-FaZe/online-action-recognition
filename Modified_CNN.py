@@ -114,8 +114,8 @@ class TSN_model(nn.Module):
         if base_model_name == 'BNInception' and self.KinWeights :
           print('Loading Kinetics weights')
           Weights = torch.load(self.KinWeights)
-          #base_dict = {'.'.join(k.split('.')[1:]): v for k,v in list(Weights.items())}
-          self.load_state_dict(Weights)         
+          base_dict = {'.'.join(k.split('.')[1:]): v for k,v in list(Weights.items())}
+          self.load_state_dict(base_dict)         
         
         #Get the input size for the last layer of CNN
         features_dim = getattr(self.base_model, self.last_layer_name).in_features                       

@@ -12,7 +12,7 @@ class TSN_model(nn.Module):
     def __init__ (self, num_classes, num_segments, modality,
                   consensus_type='avg', base_model_name='resnet18',
                   new_length=None, before_softmax=True, dropout=0.8,
-                  crop_num=1, partial_bn=True):
+                  crop_num=1, partial_bn=True , KinWeights=''):
         
         #Excute all nn.Moudle __init__ fuction stuff before anything as a base class.
         super(TSN_model, self).__init__()                                          
@@ -26,6 +26,7 @@ class TSN_model(nn.Module):
         self.dropout = dropout
         self.crop_num = crop_num                                                                                                       
         self.partial_bn = partial_bn
+        self.KinWeights = KinWeights
 
         if not before_softmax and consensus_type != 'avg':                          
             raise ValueError("Only avg consensus can be used after Softmax")
@@ -96,6 +97,32 @@ class TSN_model(nn.Module):
         elif base_model_name == 'BNInception':
             import net
             self.base_model = net.bn_inception(pretrained = True)
+           
+            if self.KinWeights :
+              state_dictTemp = {}
+              print('Loading Kinetics weights')
+              state_dict = torch.load(self.KinWeights)
+              
+              if self.modality == 'RGBDiff':
+                print('Convert flow weights to RGBDiff weights')
+                new_weights = state_dict['conv1_7x7_s2.weight'].mean(dim=1,keepdim=True).expand([64,3,7,7]).contiguous().float()
+                frist_layer = getattr(self.base_model,'conv1_7x7_s2')
+                frist_layer.weight.data = new_weights
+                frist_layer.weight.bias = state_dict['conv1_7x7_s2.bias']
+              
+              state_dict = {'base_model.'+ k : v for k,v in state_dict.items()}
+              
+              for k, v in state_dict.items():
+                
+                if k == 'base_model.fc_action.weight':
+                  state_dictTemp["base_model.last_linear.weight"] = torch.zeros([1000, 1024])
+                elif k == 'base_model.fc_action.bias':
+                  state_dictTemp["base_model.last_linear.bias"] = torch.zeros([1000])
+                else:
+                  state_dictTemp[k]=torch.squeeze(v, dim=0)
+             
+              self.load_state_dict(state_dictTemp) 
+            
             self.last_layer_name = 'last_linear'
             self.input_size = 224
             self.input_mean = [104, 117, 128]
@@ -108,6 +135,8 @@ class TSN_model(nn.Module):
               
         else:
             raise ValueError('Unknown base model: {}'.format(base_model_name))
+            
+                    
         
         #Get the input size for the last layer of CNN
         features_dim = getattr(self.base_model, self.last_layer_name).in_features                       
@@ -118,7 +147,7 @@ class TSN_model(nn.Module):
             self.new_fc = None
             print('The modified linear layer is :', getattr(self.base_model, self.last_layer_name))  
             
-        #In case of dropout, خnly nn.Dropout will be added and nn.Linear will be prepared to be added later
+        #In case of dropout, only nn.Dropout will be added and nn.Linear will be prepared to be added later
         else:
             setattr(self.base_model, self.last_layer_name, nn.Dropout(self.dropout))
             self.new_fc = nn.Linear(features_dim, num_classes)

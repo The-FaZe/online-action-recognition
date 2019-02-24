@@ -35,6 +35,7 @@ parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
 parser.add_argument('--gpus', nargs='+', type=int, default=None)
 parser.add_argument('--flow_prefix', type=str, default='')
+parser.add_argument('--classInd_file', type=str, default='')
 
 args = parser.parse_args()
 
@@ -102,6 +103,19 @@ output = []
 proc_start_time = time.time()
 max_num = args.max_num if args.max_num > 0 else len(data_loader.dataset)
 
+def IdxtoClass(ClassIndDir):
+  action_label={}
+  with open(ClassIndDir) as f:
+      content = f.readlines()
+      content = [x.strip('\r\n') for x in content]
+  f.close()
+
+  for line in content:
+      label,action = line.split(' ')
+      if action not in action_label.keys():
+          action_label[label]=action
+          
+  return action_label
 
 def eval_video(video_data):
     """
@@ -132,6 +146,7 @@ def eval_video(video_data):
       output_np = output_np.mean(axis=0).reshape((args.test_segments,1,num_class))
     return output_np, label[0]
 
+Label = IdxtoClass(args.classInd_file)
 
 #i = 0 --> number of videos, data is x, and label is y
 for i, (data, label) in enumerate(data_loader):
@@ -142,9 +157,11 @@ for i, (data, label) in enumerate(data_loader):
     result = eval_video((data, label))
     output.append(result)
     count_time = time.time() - proc_start_time
-    print('video {} done, total {}/{}, average {} sec/video'.format(i, i+1,
-                                                                    total_num,
-                                                                    float(count_time) / (i+1)))
+    indxes = np.flip(np.argsort(result[0].mean(axis=0)),axis = 1)[ 0 , : 5]
+    topscores = np.flip(np.sort(result[0].mean(axis=0)),axis = 1)[ 0 , : 5]
+    print('total {}/{} - averageTime {:.3f} sec/video - Top5 scores: {} - Top5 actions: {} - True Labal: {}'.format(i+1,
+                                                                                                                       total_num,float(count_time) / (i+1),
+                                                                                                                       topscores,indxes,result[1]))
 
 
 #this outputs the indices of the classified actions which can be missclassified
@@ -154,11 +171,11 @@ video_labels = [x[1] for x in output]
 
 #compute accuracy using confusion matrix
 cf = confusion_matrix(video_labels, video_pred).astype(float)
-print(cf)
+
 class_count = cf.sum(axis=1)
-print('class_count',class_count)
+
 class_right = np.diag(cf)
-print('class_right',class_right)
+
 class_acc = class_right / class_count
 
 print(class_acc)

@@ -9,7 +9,6 @@ parser.add_argument('dataset', type=str, choices=['ucf101', 'hmdb51', 'kinetics'
 parser.add_argument('modality', type=str, choices=['RGB', 'RGBDiff'])
 parser.add_argument('train_list', type=str)
 parser.add_argument('val_list', type=str)
-
 #Model Configurations.
 #The following arguments are optional. e.g. you should type --arch "your architecture" in the command window
 parser.add_argument('--arch', type=str, default="resnet101")
@@ -21,6 +20,7 @@ parser.add_argument('--dropout', '--do', default=0.5, type=float,
                     metavar='DO', help='dropout ratio (default: 0.5)')
 parser.add_argument('--loss_type', type=str, default="nll",
                     choices=['nll'])
+parser.add_argument('--KinWeights', type=str, default = '')
 
 #Training Configurations.
 parser.add_argument('--epochs', default=45, type=int, metavar='N',

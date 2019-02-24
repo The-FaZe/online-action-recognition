@@ -142,22 +142,21 @@ def main():
 
     #train for one epoch
     train(train_loader, model, criterion, optimizer, epoch)
-    
-    #subprocess.run(["nvidia-smi"])
-	
+
+    # remember best acc@1 and save checkpoint.
+    is_best = acc1 > best_acc1
+    best_acc1 = max(acc1, best_acc1)
+    save_checkpoint({
+	  'epoch': epoch + 1,
+	  'arch': args.arch,
+	  'state_dict': model.state_dict(),
+	  'best_acc1': best_acc1,
+	}, is_best)
+
     #evaluate on validation set
     if (epoch+1) % args.eval_freq == 0 or epoch == args.epochs - 1:
       acc1 = validate(val_loader, model, criterion, (epoch+1) * len(train_loader))
 
-      # remember best acc@1 and save checkpoint.
-      is_best = acc1 > best_acc1
-      best_acc1 = max(acc1, best_acc1)
-      save_checkpoint({
-          'epoch': epoch + 1,
-          'arch': args.arch,
-          'state_dict': model.state_dict(),
-          'best_acc1': best_acc1,
-      }, is_best)
 
       
 def train(train_loader, model, criterion, optimizer, epoch):

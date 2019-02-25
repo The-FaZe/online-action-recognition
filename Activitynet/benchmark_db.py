@@ -9,7 +9,7 @@ def parse_directory(path, rgb_prefix='img_', flow_x_prefix='flow_x_', flow_y_pre
     """
     Parse directories holding extracted frames from standard benchmarks
     """
-    print 'parse frames under folder {}'.format(path)
+    print('parse frames under folder {}'.format(path))
     frame_folders = glob.glob(os.path.join(path, '*'))
 
     def count_files(directory, prefix_list):
@@ -33,9 +33,9 @@ def parse_directory(path, rgb_prefix='img_', flow_x_prefix='flow_x_', flow_y_pre
             raise ValueError('x and y direction have different number of flow images. video: '+f)
         flow_counts[k] = x_cnt
         if i % 200 == 0:
-            print '{} videos parsed'.format(i)
+            print('{} videos parsed'.format(i)) 
 
-    print 'frame folder analysis done'
+    print('frame folder analysis done')
     return dir_dict, rgb_counts, flow_counts
 
 
@@ -72,7 +72,7 @@ def parse_ucf_splits():
         return vid, label
 
     splits = []
-    for i in xrange(1, 4):
+    for i in range(1, 4):
         train_list = [line2rec(x) for x in open('data/ucf101_splits/trainlist{:02d}.txt'.format(i))]
         test_list = [line2rec(x) for x in open('data/ucf101_splits/testlist{:02d}.txt'.format(i))]
         splits.append((train_list, test_list))
@@ -103,7 +103,7 @@ def parse_hmdb51_splits():
     class_info_list = map(parse_class_file, class_files)
 
     splits = []
-    for i in xrange(1, 4):
+    for i in range(1, 4):
         train_list = [
             (vid, class_dict[cls[0]]) for cls in class_info_list for vid in cls[2] if cls[1] == i
         ]

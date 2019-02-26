@@ -4,6 +4,7 @@ from utils import *
 class Instance(object):
     """
     Representing an instance of activity in the videos
+    this is a very important file 
     """
 
     def __init__(self, idx, anno, vid_id, vid_info, name_num_mapping):
@@ -11,10 +12,10 @@ class Instance(object):
         '''
         this function access the info form entry from the key field "database"
 
-        
-        :param idx: 
-        :param anno: list of all annotated activity instances in the video (segments). 
-              Each item in the list contains the key fields: "label" and "segment". 
+
+        :param idx:
+        :param anno: list of all annotated activity instances in the video (segments).
+              Each item in the list contains the key fields: "label" and "segment".
               The key field "label" refers to the activity class, and the key field "segment" contains
               the starting and ending time of the activity instance (in seconds).
 
@@ -200,10 +201,10 @@ class ANetDB(object):
         """
          This function just parse the taxonomy file
          contains information about all the nodes in the ActivityNet hierarchy.
-         Each entry contains information about a node in the ActivitNet hierarchy. 
-         As noted, the leaf-to-root path can be recovered by walking the hierarchy 
+         Each entry contains information about a node in the ActivitNet hierarchy.
+         As noted, the leaf-to-root path can be recovered by walking the hierarchy
          (using the "parentId" field).
-        
+
         :return:
         """
         name_dict = {x['nodeName']: x for x in self._taxonomy}

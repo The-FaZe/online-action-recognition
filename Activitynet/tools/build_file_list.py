@@ -6,7 +6,7 @@ sys.path.append('.')
 from pyActionRecog import parse_directory, build_split_list
 from pyActionRecog import parse_split_file
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser() # work as a command line
 parser.add_argument('dataset', type=str, choices=['ucf101', 'hmdb51', 'activitynet_1.2', 'activitynet_1.3'])
 parser.add_argument('frame_path', type=str, help="root directory holding the frames")
 parser.add_argument('--rgb_prefix', type=str, help="prefix of RGB frames", default='img_')

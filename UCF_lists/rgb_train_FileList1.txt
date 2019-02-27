@@ -4866,7 +4866,7 @@
 /content/jpegs_256/v_LongJump_g17_c05 169 50
 /content/jpegs_256/v_LongJump_g18_c01 107 50
 /content/jpegs_256/v_LongJump_g18_c02 128 50
-/content/jpegs_256/v_LongJump_g18_c03 110 50
+/content/jpegs_256/v_LongJump_g18_c03 109 50
 /content/jpegs_256/v_LongJump_g18_c04 145 50
 /content/jpegs_256/v_LongJump_g18_c05 92 50
 /content/jpegs_256/v_LongJump_g19_c01 150 50

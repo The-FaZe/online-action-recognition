@@ -331,7 +331,8 @@ class TSN_model(nn.Module):
         if self.modality == 'RGBDiff':
             #Get RGBDiff Tensor in shape of (Batch_size,Num of segments,Number of frames(eg:5),3,H,W)                                          
             input = self.extract_rgbDiff(input)
-        
+            print('input to CNN: ', input.size())
+            
         #Reshape the input to be in shape of (Batchsize*num_segments,new_lenghth*3,H,W) to suit the model.
         input = input.view((-1, sample_len) + input.size()[-2:])
         #print('input after reshape: ',input.size())

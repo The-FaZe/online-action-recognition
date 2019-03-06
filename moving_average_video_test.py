@@ -83,9 +83,14 @@ def one_video():
           output_np = output.data.cpu().numpy().copy()
           #Reshape numpy array to (num_crop,num_segments,num_classes)
           output_np = output_np.reshape((num_crop, test_segments, num_class))
+         
           #Take mean of cropped images to be in shape (num_segments,1,num_classes)
           output_np = output_np.mean(axis=0).reshape((test_segments,1,num_class))
-          output_np = output_np.mean(axis=0)
+          print("output np:")
+          print(output_np)
+          print("type", type(output_np))
+          print("size of output np: ", output_np.shape)
+          #output_np = output_np.mean(axis=0)
       return output_np     
   
   #this function used to pick 25 frames only from the whole video
@@ -100,7 +105,9 @@ def one_video():
   test_segments = args.test_segments
   
 
-    
+  """
+  --------------------Inzializations---------------------------
+  """
     
   action_label = label_dic(args.classInd_file)
 
@@ -150,9 +157,13 @@ def one_video():
          
   model.eval()    
 
-  softmax = torch.nn.Softmax()
-  scores = torch.tensor(np.zeros((1,101)), dtype=torch.float32).cuda()
+  softmax = torch.nn.Softmax() #across rows
    
+  
+  """
+  --------------Captureing the frames from  the video-------------------
+  """
+  
   frames = []  
   capture = cv2.VideoCapture(args.video)
   frame_count = 0
@@ -183,6 +194,9 @@ def one_video():
   #to evaluate the processing time
   start_time = time.time()
   
+  """
+  ----------------------------------------------------------------------
+  """
   '''
   images = [cv2.imread(file) for file in glob.glob(args.video + "/*.jpg")]
   
@@ -194,22 +208,30 @@ def one_video():
 
   
   indices = frames_indices(frames)
+  num_segments = len(indices)
+  
   print("indices ", indices) 
   frames_a = operator.itemgetter(*indices)(frames)
   frames_a = transform(frames_a).cuda()
   
+  scores = torch.tensor(np.zeros((num_segments, 1, 101)), dtype=torch.float32).cuda()
   scores = eval_video(frames_a)
   scores = softmax(torch.FloatTensor(scores))
-  scores = scores.data.cpu().numpy().copy()
+  scores = scores.data.cpu().numpy().copy() #now we got the scores of each segment
+  
+  
   print("scores of the segments.")
   print(scores)
   print('---------------------------------')
-  print("scores size", scores.size)
+  print("scores size", scores.shape)
   
   end_time = time.time() - start_time
   print("time taken: ", end_time)
   
-  # Display the resulting frame and the classified action
+  
+  """
+  ---------------Display the resulting frame and the classified action---------
+  """
   font = cv2.FONT_HERSHEY_SIMPLEX
   y0, dy = 300, 40
   k=0

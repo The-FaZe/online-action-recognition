@@ -1,7 +1,7 @@
 import os 
 
 #change this to your working directory
-#current_dir = r'/content/'
+current_dir = r'~/~/Documents/graduation_project/codes/real-time-action-recognition/untrimmed_work'
 #os.chdir(current_dir + 'real-time-action-recognition')
 
 import time

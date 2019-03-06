@@ -165,7 +165,7 @@ def one_video():
   
   # When everything done, release the capture
   capture.release()
-  cv2.destroyAllWindows()    
+  #cv2.destroyAllWindows()    
   
   #to evaluate the processing time
   start_time = time.time()

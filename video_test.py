@@ -194,6 +194,10 @@ def one_video():
   scores = eval_video(frames_a)
   scores = softmax(torch.FloatTensor(scores))
   scores = scores.data.cpu().numpy().copy()
+  print("scores of the segments.")
+  print(scores)
+  print('---------------------------------')
+  print("scores size", scores.size)
   
   end_time = time.time() - start_time
   print("time taken: ", end_time)

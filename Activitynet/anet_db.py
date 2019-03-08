@@ -6,12 +6,10 @@ class Instance(object):
     """
     Representing an instance of activity in the videos 
     """
-
     def __init__(self, idx, anno, vid_id, vid_info, name_num_mapping):
 
         '''
         this function access the info form entry from the key field "database"
-
 
         :param idx:	
         :param anno: list of all annotated activity instances in the video (segments).
@@ -23,8 +21,6 @@ class Instance(object):
         :param vid_info:
         :param name_num_mapping:
         '''
-
-
         self._starting, self._ending = anno['segment'][0], anno['segment'][1]
         self._str_label = anno['label']
         self._total_duration = vid_info['duration']
@@ -71,10 +67,6 @@ class Video(object):
     This class represents one video in the activity-net db
     """
     def __init__(self, key, info, name_idx_mapping=None):
-
-    	"""
-		:param key: 
-    	"""
         self._id = key
         self._info_dict = info
         self._instances = [Instance(i, x, self._id, self._info_dict, name_idx_mapping)
@@ -120,16 +112,11 @@ class ANetDB(object):
     """
     This class is the abstraction of the activity-net db
     """
-
     # create an object from ANetDB class
     _CONSTRUCTOR_LOCK = object()
 
     def __init__(self, token):
         """
-        __init__ is a typical initializer of Python class instances, which receives arguments as 
-        a typical instancemethod, having the first non-optional argument (self) that holds a reference 
-        to a newly created instance.
-
         Disabled constructor
         :param token:
         :return:
@@ -147,7 +134,7 @@ class ANetDB(object):
         :return me: object of the ANetDB class
         """
         # cls is an object that holds the class itself, not an instance of the class. 
-        #It's pretty cool because if we inherit our ANetDB class, all children will have its methods defined also.
+        # It's pretty cool because if we inherit our ANetDB class, all children will have its methods defined also.
         # 
         if version not in ["1.2","1.3"]:
             raise ValueError("Unsupported database version {}".format(version))

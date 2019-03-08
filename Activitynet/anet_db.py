@@ -3,8 +3,7 @@ from utils import *
 
 class Instance(object):
     """
-    Representing an instance of activity in the videos
-    this is a very important file 
+    Representing an instance of activity in the videos 
     """
 
     def __init__(self, idx, anno, vid_id, vid_info, name_num_mapping):

@@ -58,6 +58,68 @@ def label_dic(classInd):
           
   return action_label
 
+"""
+--------------------Sliding Window ------------------------------------
+"""
+def sliding_window_aggregation_func(score, spans=[1, 2, 4, 8, 16], overlap=0.2, norm=True, fps=1):
+    """
+    This is the aggregation function used for ActivityNet Challenge 2016
+    :param score:
+    :param spans:
+    :param overlap:
+    :param norm:
+    :param fps:
+    :return:
+    """
+    def softmax(scores_row_vector):
+        """
+        the function takes the softmax of row numpy vector
+        input:
+            scores_row_vector: a row vector of of type numpy float32
+        resturn:
+            softmax_scores: row vector of of type numpy float32
+        """
+        scores_torch = torch.from_numpy(scores_row_vector).float().cuda()
+        scores_torch = torch.nn.Softmax(scores_torch) #across rows
+        
+        return scores_torch.data.cpu().numpy()
+
+#    print("score")
+#    print(score)
+#    print("tupe of score", type(score))
+#    print("score size: ", score.shape)
+#    print('---------------------------------')
+    
+    frm_max = score.max(axis=1)
+#    print("frm_max.")
+#    print(frm_max)
+#    print("frm_max size: ", frm_max.shape)
+#    print('---------------------------------')
+    slide_score = []
+
+    def top_k_pool(scores, k):
+        return np.sort(scores, axis=0)[-k:, :].mean(axis=0)
+
+    for t_span in spans:
+        span = t_span * fps
+        step = int(np.ceil(span * (1-overlap)))
+        local_agg = [frm_max[i: i+span].max(axis=0) for i in range(0, frm_max.shape[0], step)]
+        k = max(15, len(local_agg)/4)
+        slide_score.append(top_k_pool(np.array(local_agg), k))
+
+    out_score = np.mean(slide_score, axis=0)
+
+    if norm:
+        return softmax(out_score)
+    else:
+        return out_score
+
+"""
+----------------------------------------------------------------------------
+"""
+
+
+
 #this function takes one video at a time and outputs the first 5 scores
 def one_video():
 
@@ -80,18 +142,18 @@ def one_video():
           input = data.view(-1, length, data.size(1), data.size(2))
           #Forword Propagation
           output = model(input)
-          output_np = output.data.cpu().numpy().copy()
+          #output_np = output.data.cpu().numpy().copy()
           #Reshape numpy array to (num_crop,num_segments,num_classes)
-          output_np = output_np.reshape((num_crop, test_segments, num_class))
+          output_torch = output.view((num_crop, test_segments, num_class))
          
           #Take mean of cropped images to be in shape (num_segments,1,num_classes)
-          output_np = output_np.mean(axis=0).reshape((test_segments,1,num_class))
-          print("output np:")
-          print(output_np)
-          print("type", type(output_np))
-          print("size of output np: ", output_np.shape)
+          output_torch = output_torch.mean(dim=0).view((test_segments,1,num_class))
+#          print("output np:")
+#          print(output_torch)
+#          print("type", type(output_torch))
+#          print("size of output np: ", output_torch.shape)
           #output_np = output_np.mean(axis=0)
-      return output_np     
+      return output_torch     
   
   #this function used to pick 25 frames only from the whole video
   def frames_indices(frames):
@@ -210,20 +272,31 @@ def one_video():
   indices = frames_indices(frames)
   num_segments = len(indices)
   
-  print("indices ", indices) 
   frames_a = operator.itemgetter(*indices)(frames)
   frames_a = transform(frames_a).cuda()
   
-  scores = torch.tensor(np.zeros((num_segments, 1, 101)), dtype=torch.float32).cuda()
+  scores = torch.zeros((num_segments, 1, 101), dtype=torch.float32).cuda()
   scores = eval_video(frames_a)
-  scores = softmax(torch.FloatTensor(scores))
+
+  #scores = softmax(scores)
   scores = scores.data.cpu().numpy().copy() #now we got the scores of each segment
   
   
-  print("scores of the segments.")
-  print(scores)
+#  print("scores")
+#  print(scores)
+#  print("tupe of scores", type(scores))
+#  print("score size: ", scores.shape)
+#  print('---------------------------------')
+  
+  
+  out_scores = np.zeros((num_segments, 1, 101), dtype=float)
+  out_scores = sliding_window_aggregation_func(scores, spans=[1], norm=True)
+  
+  print("output scores of the segments.")
+  print(out_scores)
   print('---------------------------------')
-  print("scores size", scores.shape)
+  print("scores size: ", out_scores.shape)
+  
   
   end_time = time.time() - start_time
   print("time taken: ", end_time)
@@ -232,24 +305,24 @@ def one_video():
   """
   ---------------Display the resulting frame and the classified action---------
   """
-  font = cv2.FONT_HERSHEY_SIMPLEX
-  y0, dy = 300, 40
-  k=0
-  print('Top 5 actions: ')
-  #get the top-5 classified actions
-  for i in np.argsort(scores)[0][::-1][:5]:
-      print('%-22s %0.2f%%' % (action_label[str(i+1)], scores[0][i] * 100))
-      #this equation is used to print different actions on a separate line
-      y = y0 + k * dy
-      k+=1
-      cv2.putText(RGB_frame, text='{} - {:.2f}'.format(action_label[str(i+1)],scores[0][i]), 
-                       org=(5,y),fontFace=font, fontScale=1,
-                       color=(0,0,255), thickness=2)
-  
-  #save the frame in your current working directory
-  cv2.imwrite(current_dir + 'text_frame'+'.png', RGB_frame)
-  #plt.imshow(img)
-  #plt.show()
+#  font = cv2.FONT_HERSHEY_SIMPLEX
+#  y0, dy = 300, 40
+#  k=0
+#  print('Top 5 actions: ')
+#  #get the top-5 classified actions
+#  for i in np.argsort(scores)[0][::-1][:5]:
+#      print('%-22s %0.2f%%' % (action_label[str(i+1)], scores[0][i] * 100))
+#      #this equation is used to print different actions on a separate line
+#      y = y0 + k * dy
+#      k+=1
+#      cv2.putText(RGB_frame, text='{} - {:.2f}'.format(action_label[str(i+1)],scores[0][i]), 
+#                       org=(5,y),fontFace=font, fontScale=1,
+#                       color=(0,0,255), thickness=2)
+#  
+#  #save the frame in your current working directory
+#  cv2.imwrite(current_dir + 'text_frame'+'.png', RGB_frame)
+#  #plt.imshow(img)
+#  #plt.show()
 
 
   

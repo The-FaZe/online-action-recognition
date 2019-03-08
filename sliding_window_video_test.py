@@ -14,6 +14,7 @@ import cv2
 import torchvision.transforms as Transforms
 from numpy.random import randint
 import operator
+import numpy as np
 
 #from matplotlib import pyplot as plt
 
@@ -43,18 +44,25 @@ parser.add_argument('--gpus', nargs='+', type=int, default=None)
 
 args = parser.parse_args()
 
-#this function returns a dictionary (keys are string label numbers & values are action labels)
+
 def label_dic(classInd):
-  action_label={}
+  """
+  returns a list of the actions ordered by the list index
+  input:
+      classInd: of type string refering the input textfile
+  output:
+      action_label: of type list
+  """
+  action_label=[]
   with open(classInd) as f:
       content = f.readlines()
-      content = [x.strip('\r\n') for x in content]
+      
   f.close()
-
   for line in content:
-      label, action = line.split(' ')
-      if action not in action_label.keys():
-          action_label[label] = action
+      action_label.append(line.split(' ')[-1].rstrip()) #splitting the number from the action
+                                                        #and removing the '/n' using 
+                                                        #rstrip() method
+    
           
   return action_label
 
@@ -79,22 +87,14 @@ def sliding_window_aggregation_func(score, spans=[1, 2, 4, 8, 16], overlap=0.2, 
         resturn:
             softmax_scores: row vector of of type numpy float32
         """
+        torch_softmax = torch.nn.Softmax() #across rows
         scores_torch = torch.from_numpy(scores_row_vector).float().cuda()
-        scores_torch = torch.nn.Softmax(scores_torch) #across rows
-        
+        scores_torch = torch_softmax(scores_torch)
+       
         return scores_torch.data.cpu().numpy()
 
-#    print("score")
-#    print(score)
-#    print("tupe of score", type(score))
-#    print("score size: ", score.shape)
-#    print('---------------------------------')
     
     frm_max = score.max(axis=1)
-#    print("frm_max.")
-#    print(frm_max)
-#    print("frm_max size: ", frm_max.shape)
-#    print('---------------------------------')
     slide_score = []
 
     def top_k_pool(scores, k):
@@ -117,6 +117,60 @@ def sliding_window_aggregation_func(score, spans=[1, 2, 4, 8, 16], overlap=0.2, 
 """
 ----------------------------------------------------------------------------
 """
+
+"""
+-----------------------------print_topN_action class---------------
+"""
+class top_N(object):
+    
+    def __init__(self, N, actions_list, scores):
+        """
+        input:
+            N: is an integer
+            action_list: of type 1d list
+            scores: of type numpay 1d array (row vector)
+        """
+
+        self.N = N
+        self.actions_list = actions_list
+        self.scores = scores
+        
+    def get_top_N_actions(self):
+        """
+        returns a tuple (top N actions' indicies, list of type N action)
+        
+        """
+        sorted_indcies = np.argsort(self.scores)[::-1] #soring the indicies from 
+                                                       #the biggesr to the loewst
+        
+        sorted_indcies = sorted_indcies[:self.N]     #taking top N actioms
+        
+        top_N_actions= []
+        for i in sorted_indcies:
+            top_N_actions.append(self.actions_list[i])
+            
+        return sorted_indcies, top_N_actions
+    
+    def __str__(self):
+        """
+        this method will be activated when doing print(object)
+        """
+        open_statement = "Top " + str(self.N) + " Actions.\n"
+        action_satement = ''
+        
+        indcies , top_actions = self.get_top_N_actions()
+        
+        j=0
+        for i in indcies:
+            action_satement += top_actions[j] + " : " \
+                            + "{0:.4f}".format(self.scores[i]*100) + '\n'
+            j+=1
+                            
+        return open_statement + action_satement
+            
+        
+        
+            
 
 
 
@@ -142,17 +196,12 @@ def one_video():
           input = data.view(-1, length, data.size(1), data.size(2))
           #Forword Propagation
           output = model(input)
-          #output_np = output.data.cpu().numpy().copy()
           #Reshape numpy array to (num_crop,num_segments,num_classes)
           output_torch = output.view((num_crop, test_segments, num_class))
          
           #Take mean of cropped images to be in shape (num_segments,1,num_classes)
           output_torch = output_torch.mean(dim=0).view((test_segments,1,num_class))
-#          print("output np:")
-#          print(output_torch)
-#          print("type", type(output_torch))
-#          print("size of output np: ", output_torch.shape)
-          #output_np = output_np.mean(axis=0)
+#          
       return output_torch     
   
   #this function used to pick 25 frames only from the whole video
@@ -171,7 +220,7 @@ def one_video():
   --------------------Inzializations---------------------------
   """
     
-  action_label = label_dic(args.classInd_file)
+  action_label = label_dic(args.classInd_file) #loading actions from 
 
   if args.dataset == 'ucf101':
       num_class = 101
@@ -278,51 +327,24 @@ def one_video():
   scores = torch.zeros((num_segments, 1, 101), dtype=torch.float32).cuda()
   scores = eval_video(frames_a)
 
-  #scores = softmax(scores)
   scores = scores.data.cpu().numpy().copy() #now we got the scores of each segment
   
   
-#  print("scores")
-#  print(scores)
-#  print("tupe of scores", type(scores))
-#  print("score size: ", scores.shape)
-#  print('---------------------------------')
+
   
   
   out_scores = np.zeros((num_segments, 1, 101), dtype=float)
-  out_scores = sliding_window_aggregation_func(scores, spans=[1], norm=True)
+  out_scores = sliding_window_aggregation_func(scores, spans=[1, 4, 8, 16], norm=True, fps=1)
   
-  print("output scores of the segments.")
-  print(out_scores)
-  print('---------------------------------')
-  print("scores size: ", out_scores.shape)
+  
   
   
   end_time = time.time() - start_time
   print("time taken: ", end_time)
   
-  
-  """
-  ---------------Display the resulting frame and the classified action---------
-  """
-#  font = cv2.FONT_HERSHEY_SIMPLEX
-#  y0, dy = 300, 40
-#  k=0
-#  print('Top 5 actions: ')
-#  #get the top-5 classified actions
-#  for i in np.argsort(scores)[0][::-1][:5]:
-#      print('%-22s %0.2f%%' % (action_label[str(i+1)], scores[0][i] * 100))
-#      #this equation is used to print different actions on a separate line
-#      y = y0 + k * dy
-#      k+=1
-#      cv2.putText(RGB_frame, text='{} - {:.2f}'.format(action_label[str(i+1)],scores[0][i]), 
-#                       org=(5,y),fontFace=font, fontScale=1,
-#                       color=(0,0,255), thickness=2)
-#  
-#  #save the frame in your current working directory
-#  cv2.imwrite(current_dir + 'text_frame'+'.png', RGB_frame)
-#  #plt.imshow(img)
-#  #plt.show()
+  top_5_actions = top_N(5, action_label, out_scores)
+  print(top_5_actions)
+
 
 
   

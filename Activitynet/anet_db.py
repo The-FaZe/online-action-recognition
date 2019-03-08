@@ -1,5 +1,6 @@
-from utils import *
 
+
+from utils import *
 
 class Instance(object):
     """
@@ -12,7 +13,7 @@ class Instance(object):
         this function access the info form entry from the key field "database"
 
 
-        :param idx:
+        :param idx:	
         :param anno: list of all annotated activity instances in the video (segments).
               Each item in the list contains the key fields: "label" and "segment".
               The key field "label" refers to the activity class, and the key field "segment" contains
@@ -70,6 +71,10 @@ class Video(object):
     This class represents one video in the activity-net db
     """
     def __init__(self, key, info, name_idx_mapping=None):
+
+    	"""
+		:param key: 
+    	"""
         self._id = key
         self._info_dict = info
         self._instances = [Instance(i, x, self._id, self._info_dict, name_idx_mapping)
@@ -116,10 +121,15 @@ class ANetDB(object):
     This class is the abstraction of the activity-net db
     """
 
+    # create an object from ANetDB class
     _CONSTRUCTOR_LOCK = object()
 
     def __init__(self, token):
         """
+        __init__ is a typical initializer of Python class instances, which receives arguments as 
+        a typical instancemethod, having the first non-optional argument (self) that holds a reference 
+        to a newly created instance.
+
         Disabled constructor
         :param token:
         :return:
@@ -128,14 +138,17 @@ class ANetDB(object):
             raise ValueError("Use get_db to construct an instance, do not directly use the constructor")
 
     @classmethod
-    def get_db(cls, version="1.2"):
+    def get_db(cls, version="1.2"): # classmethod must have a reference to a class object as the first parameter.
         """
         Build the internal representation of Activity Net databases
         We use the alphabetic order to transfer the label string to its numerical index in learning
 
         :param version: version of Activitynet dataset
-        :return:
+        :return me: object of the ANetDB class
         """
+        # cls is an object that holds the class itself, not an instance of the class. 
+        #It's pretty cool because if we inherit our ANetDB class, all children will have its methods defined also.
+        # 
         if version not in ["1.2","1.3"]:
             raise ValueError("Unsupported database version {}".format(version))
 
@@ -160,11 +173,17 @@ class ANetDB(object):
         # Get the version of the Activitynet dataset (1.2 or 1.3)
         self._version = raw_db['version']
 
-        # deal with taxonomy
+        # taxonamy is the second section in .json file which represent the hierarchy
         self._taxonomy = raw_db['taxonomy']
+        
+        # parse the taxonomy section in .json file
         self._parse_taxonomy()
 
         self._database = raw_db['database']
+
+        # use _database.items() method to return a view object that displays a list 
+        # of dictionary's (key, value) tuple pairs.
+        # in this case the k: key of the video, v:info associated with the video 
         self._video_dict = {k: Video(k, v, self._name_idx_table) for k,v in self._database.items()}
 
         # split testing/training/validation set
@@ -193,18 +212,18 @@ class ANetDB(object):
         else:
             raise ValueError("Unknown subset {}".format(subset_name))
 
+
     def get_ordered_label_list(self):
         return [self._idx_name_table[x] for x in sorted(self._idx_name_table.keys())]
 
+
     def _parse_taxonomy(self):
         """
-         This function just parse the taxonomy file
-         contains information about all the nodes in the ActivityNet hierarchy.
+         This function just parse the taxonomy section in .json file
+         which contains information about all the nodes in the ActivityNet hierarchy.
          Each entry contains information about a node in the ActivitNet hierarchy.
          As noted, the leaf-to-root path can be recovered by walking the hierarchy
          (using the "parentId" field).
-
-        :return:
         """
         name_dict = {x['nodeName']: x for x in self._taxonomy}
 
@@ -214,9 +233,13 @@ class ANetDB(object):
             parents.add(x['parentName'])
 
         # leaf nodes are those without any child
+        # using set() here will help us to perform .difference function to get unique parenetNames
         leaf_nodes = [name_dict[x] for x
                       in list(set(name_dict.keys()).difference(parents))]
+
+        # sort the leaf_nodes based on alphaptical order
         sorted_lead_nodes = sorted(leaf_nodes, key=lambda l: l['nodeName'])
+
         self._idx_name_table = {i: e['nodeName'] for i, e in enumerate(sorted_lead_nodes)}
         self._name_idx_table = {e['nodeName']: i for i, e in enumerate(sorted_lead_nodes)}
         self._name_table = {x['nodeName']: x for x in sorted_lead_nodes}

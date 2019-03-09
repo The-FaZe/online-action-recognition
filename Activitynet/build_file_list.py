@@ -3,8 +3,8 @@ import os
 import sys
 
 sys.path.append('.')
-from benchmerk_db import parse_directory, build_split_list
-from utils.__init__ import parse_split_file
+from benchmark_db import parse_directory, build_split_list
+from __init__ import parse_split_file
 
 parser = argparse.ArgumentParser() # work as a command line
 parser.add_argument('dataset', type=str, choices=['ucf101', 'hmdb51', 'activitynet_1.2', 'activitynet_1.3'])

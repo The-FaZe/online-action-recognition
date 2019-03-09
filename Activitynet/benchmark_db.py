@@ -9,19 +9,39 @@ from anet_db import ANetDB  # anet_db module organize the activitynet dataset
 def parse_directory(path, rgb_prefix='img_', flow_x_prefix='flow_x_', flow_y_prefix='flow_y_'):
     """
     Parse directories holding extracted frames from standard benchmarks
+    
+    :Param path: str - represent the path to the folder of extracted frames
+    :Param rgb_prefix: Str - prefix of rgb frames
+    :Param flow_x_prefix: Str - prefix of flow_x frames
+    :Param flow_y_prefix: Str - prefix of flow_y frames
     """
     print('parse frames under folder {}'.format(path))
+    
+    # create list that will contain directries of all folders in the givin path.
+    # note that the '*' mean join all folders_names in that directory to path 
+    # frame_folders = [dir_of_Folder1, dir_of_folder2, ... ]
     frame_folders = glob.glob(os.path.join(path, '*'))
 
     def count_files(directory, prefix_list):
+        """
+        :Param directory: Str - directory to the files to be counted
+        :Param prefix_list: tuple - subset prefix of folders names that we need to count frames inside like img_, flow_x_, flow_y_
+        
+        :Return dir_dict: dict - its keys are the folders names, and values are the directories for each forlder
+        :Return rgb_counts: dict - ??
+        :Return flow_counts: dict - ??
+        """
+        # Create a list containing the names of the entries in the directory given by path. 
         lst = os.listdir(directory)
         cnt_list = [len(fnmatch.filter(lst, x+'*')) for x in prefix_list]
         return cnt_list
 
     # check RGB
-    rgb_counts = {}
+    rgb_counts = {}     # empty dict
     flow_counts = {}
     dir_dict = {}
+    
+    # i: counter, f: url of frames folders
     for i,f in enumerate(frame_folders):
         all_cnt = count_files(f, (rgb_prefix, flow_x_prefix, flow_y_prefix))
         k = f.split('/')[-1]

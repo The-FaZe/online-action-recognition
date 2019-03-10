@@ -101,8 +101,12 @@ def sliding_window_aggregation_func(score, spans=[1, 2, 4, 8, 16], overlap=0.2, 
 """
 -----------------------------print_topN_action class---------------
 """
-class top_N(object):
+class Top_N(object):
     
+    client_flag = True #if import_indecies_top_N_scores it will print using the actual 
+                       #scores from the server
+                        #if import_scores were called it will print its tops cores
+                        #(slient scores)
     def __init__(self, classInd_textfile, N=5):
         """
         input:
@@ -113,6 +117,9 @@ class top_N(object):
         self.N = N
         self.actions_list = self.load_actions_label(classInd_textfile)
         self.scores = None
+        self.top_N_scores = None
+        self.top_N_actions = None
+        self.indecies = None
         
         
     def load_actions_label(self, classInd):
@@ -141,7 +148,7 @@ class top_N(object):
         """
         the method impoetes the socres of the actions
         """
-        
+        Top_N.client_flag = False
         self.scores = scores
     
     def get_top_N_actions(self):
@@ -173,9 +180,46 @@ class top_N(object):
         for i in sorted_indcies:
             top_N_actions.append(self.actions_list[i])
             top_N_scores.append(self.scores[i])
+        
+        self.top_N_scores = top_N_scores
+        self.top_N_actions = top_N_actions
+        self.indecies = sorted_indcies
+        
             
         return sorted_indcies, top_N_actions, top_N_scores
     
+    
+    def import_indecies_top_N_scores(self, tuple_input):
+        """
+        the method takes a input tuple (indecies, scores)
+        returns the list of actions' string
+        """
+        Top_N.client_flag = True
+        self.indecies, self.top_N_scores = tuple_input
+        
+    
+    def index_to_actionString(self):
+        
+        """
+        the method takes a input tuple (indecies, scores)
+        returns the list of actions' string
+        """
+        #Handelling no scores' input
+        try:
+            if self.indecies == None:
+                return False
+        except:
+            pass
+        
+        top_N_actions = []
+        for i in self.indecies:
+            top_N_actions.append(self.actions_list[i])
+            
+        self.top_N_actions = top_N_actions
+        
+        return top_N_actions
+            
+        
     def __str__(self):
         
         """
@@ -186,19 +230,29 @@ class top_N(object):
         
         #Handelling no scores' input
         try:
-            if self.scores == None:
+            if self.scores == None and self.indecies == None:
+                return open_statement + "\nThere is no scores were given."
+        except:
+            pass
+        
+        try:
+            if self.top_scores == None:
                 return open_statement + "\nThere is no scores were given."
         except:
             pass
             
-        
+        if Top_N.client_flag: #if import_indecies_top_N_scores is called
+            self.index_to_actionString()
+        else: #if import_scores were called
+            self.get_top_N_actions()
+            
         action_satement = ''
         
-        _, top_actions, top_N_scores = self.get_top_N_actions()
+        
         
         for i in range(self.N):
-            action_satement += top_actions[i] + " : " \
-                            + "{0:.4f}".format(top_N_scores[i]*100) + '\n'
+            action_satement += self.top_N_actions[i] + " : " \
+                            + "{0:.4f}".format(self.top_N_scores[i]*100) + '\n'
                             
         return open_statement + action_satement
             
@@ -254,7 +308,7 @@ def one_video():
   --------------------Inzializations---------------------------
   """
     
-  top5_actions = top_N(args.classInd_file, 5)
+  top5_actions = Top_N(args.classInd_file, 5)
 
   if args.dataset == 'ucf101':
       num_class = 101

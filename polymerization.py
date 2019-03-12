@@ -162,11 +162,10 @@ def First_step():
                 scores = eval_video(frames)
                 scores = softmax(torch.FloatTensor(scores))
                 scores = scores.data.cpu().numpy().copy()
-                scores = scores.reshape(101)
                 print("score: ")
                 print(scores)
                 print("shape of score", scores.shape)
-                top5_actions.import_scores(scores)
+                top5_actions.import_scores(scores[0,])
                 indecies,_,scores = top5_actions.get_top_N_actions()
                 send_results.put(status=status,scores=(*indecies,*scores))
                 

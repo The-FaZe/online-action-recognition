@@ -141,7 +141,7 @@ def First_step():
   frame_count = 0 
   try: 
     top5_actions = Top_N(classInd_file)
-    Tunnel_ = False
+    Tunnel_ = True
     conn,T_thr = Network.set_server(port=6666,Tunnel=Tunnel_,n=1)
     rcv_frames = Streaming.rcv_frames_thread(connection=conn[0])
     send_results = Streaming.send_results_thread(connection=conn[1],scores_f=False)

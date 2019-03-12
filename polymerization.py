@@ -147,7 +147,7 @@ def First_step():
     Tunnel_ = True
     conn,T_thr = Network.set_server(port=6666,Tunnel=Tunnel_,n=1)
     rcv_frames = Streaming.rcv_frames_thread(connection=conn[0])
-    send_results = Streaming.send_results_thread(connection=conn[1],scores_f=False)
+    send_results = Streaming.send_results_thread(connection=conn[1])
     while (rcv_frames.isAlive() and send_results.isAlive()):
         frame,status = rcv_frames.get()
         if frame is 0:

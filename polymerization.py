@@ -13,7 +13,9 @@ from transforms import *
 import argparse
 
 #--------------------Communication import--------------------------
-from communication import Streaming, TopN, Network
+from communication import Streaming
+from communication import Network
+from communication import TopN
 import threading
 import multiprocessing as mp
 
@@ -177,4 +179,5 @@ def First_step():
 
   
 if __name__ == '__main__':
+    os.environ['TORCH_MODEL_ZOO'] = "/home/alex039u2/data/" #adding working directory of pytorch
     First_step()

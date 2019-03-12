@@ -1,9 +1,9 @@
-import Network
+from communication import Network
 import multiprocessing as mp
 from time import time
 import threading
 from socket import socket
-import Segmentation
+from communication import Segmentation
 from struct import pack,unpack,calcsize
 
 class rcv_frames_thread(threading.Thread):

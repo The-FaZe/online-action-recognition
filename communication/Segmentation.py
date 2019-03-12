@@ -8,7 +8,7 @@ import multiprocessing as mp
 from collections import deque
 from communication import Network
 from communication import Streaming
-from TopN import Top_N
+from communication.TopN import Top_N
 # A class to generate random index that segment the real time stream
 # then pick snippets out of every segment in real time behaviour 
 class decision():

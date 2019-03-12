@@ -16,7 +16,7 @@ import argparse
 #--------------------Communication import--------------------------
 from communication import Streaming
 from communication import Network
-from communication import TopN
+from communication.TopN import Top_N
 import threading
 import multiprocessing as mp
 

@@ -105,7 +105,7 @@ class TSN_model(nn.Module):
               
               if self.modality == 'RGBDiff':
                 print('Convert flow weights to RGBDiff weights')
-                new_weights = state_dict['conv1_7x7_s2.weight'].mean(dim=1,keepdim=True).expand([64,3,7,7]).contiguous().float()
+                new_weights = state_dict['conv1_7x7_s2.weight'].mean(dim=1,keepdim=True).expand([64,3 * self.new_length,7,7]).contiguous().float()
                 frist_layer = getattr(self.base_model,'conv1_7x7_s2')
                 frist_layer.weight.data = new_weights
                 frist_layer.weight.bias = state_dict['conv1_7x7_s2.bias']

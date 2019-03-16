@@ -122,23 +122,24 @@ class TSN_model(nn.Module):
         #In case of no dropout,Only nn.Linear will be added
         if self.dropout == 0:
             setattr(self.base_model, self.last_layer_name, nn.Linear(features_dim, num_classes))
-            self.base_model.last_linear = None
+            self.new_fc = None
             print('The modified linear layer is :', getattr(self.base_model, self.last_layer_name))  
             
         #In case of dropout, only nn.Dropout will be added and nn.Linear will be prepared to be added later
         else:
             setattr(self.base_model, self.last_layer_name, nn.Dropout(self.dropout))
-            self.base_model.last_linear = nn.Linear(features_dim, num_classes)
-            print('Dropout Layer added and The modified linear layer is :', self.base_model.last_linear)
+            self.new_fc = nn.Linear(features_dim, num_classes)
+            self.base_model.last_layer_name = self.new_fc
+            print('Dropout Layer added and The modified linear layer is :', self.new_fc)
         
         #Modify Wighets of newly created Linear layer
         std=0.001
-        if self.base_model.last_linear == None:
+        if self.new_fc == None:
             normal_(getattr(self.base_model, self.last_layer_name).weight,0,std)
             constant_(getattr(self.base_model, self.last_layer_name).bias,0)
         else:
-            normal_(self.base_model.last_linear.weight, 0, std)
-            constant_(self.base_model.last_linear.bias,0)
+            normal_(self.base_model.last_layer_name.weight, 0, std)
+            constant_(self.base_model.last_layer_name.bias,0)
        
     def Modify_RGBDiff_Model(self, base_model, keep_rgb=False):
       

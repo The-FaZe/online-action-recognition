@@ -203,7 +203,7 @@ class TSN_model(nn.Module):
 
       state_dict = {'base_model.'+ k : v for k,v in state_dict.items()}
       
-      if self.Dropout == 0:
+      if self.dropout == 0:
         for k, v in state_dict.items():
           if k == 'base_model.fc_action.weight':
             state_dictTemp["base_model.last_linear.weight"] = torch.zeros([1000, 1024])

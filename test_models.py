@@ -129,7 +129,7 @@ def eval_video(video_data):
     if args.modality == 'RGB':
         length = 3
     elif args.modality == 'RGBDiff':
-        length = 18
+        length = 15
     else:
         raise ValueError("Unknown modality "+args.modality)
     

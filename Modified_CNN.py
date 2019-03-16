@@ -206,18 +206,18 @@ class TSN_model(nn.Module):
       if self.dropout == 0:
         for k, v in state_dict.items():
           if k == 'base_model.fc_action.weight':
-            state_dictTemp["base_model.last_linear.weight"] = torch.zeros([1000, 1024])
+            state_dictTemp["base_model.last_linear.weight"] = getattr(self.base_model, self.last_layer_name).weight
           elif k == 'base_model.fc_action.bias':
-            state_dictTemp["base_model.last_linear.bias"] = torch.zeros([1000])
+            state_dictTemp["base_model.last_linear.bias"] = getattr(self.base_model, self.last_layer_name).bias
           else:
             state_dictTemp[k]=torch.squeeze(v, dim=0)
             
       else:
         for k, v in state_dict.items():
           if k == 'base_model.fc_action.weight':
-            state_dictTemp["new_fc.weight"] = torch.zeros([1000, 1024])
+            state_dictTemp["new_fc.weight"] = self.new_fc.weight
           elif k == 'base_model.fc_action.bias':
-            state_dictTemp["new_fc.bias"] = torch.zeros([1000])
+            state_dictTemp["new_fc.bias"] =  self.new_fc.bias
           else:
             state_dictTemp[k]=torch.squeeze(v, dim=0)        
             
@@ -347,7 +347,7 @@ class TSN_model(nn.Module):
         FProp = self.base_model(input) 
         #If the dropout layer is added to the model then there's one more layer to propagate through
         if self.dropout > 0:
-            FProp = self.base_model.last_Linear(FProp)
+            FProp = self.new_fc(FProp)
         #Propagate through softmax too
         if not self.before_softmax:
             FProp = self.softmax(FProp)

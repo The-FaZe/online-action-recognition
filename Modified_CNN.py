@@ -58,6 +58,9 @@ class TSN_model(nn.Module):
             print("Converting the ImageNet model to RGBDiff model")
             self.base_model = self.Modify_RGBDiff_Model(self.base_model, keep_rgb=False)
             print("Done. RGBDiff model is ready.")
+            
+        if self.KinWeights :
+          self.AddKinWeights(self,self.KinWeights)
         
         #Creating Consensus layer (Only 'avg' and 'identity' are available)
         self.consensus = ConsensusModule(consensus_type)                    
@@ -98,28 +101,6 @@ class TSN_model(nn.Module):
             import net
             self.base_model = net.bn_inception(pretrained = True)
            
-            if self.KinWeights :
-              state_dictTemp = {}
-              print('Loading Kinetics weights')
-              state_dict = torch.load(self.KinWeights)
-              
-              if self.modality == 'RGBDiff':
-                print('Convert flow weights to RGBDiff weights')
-                state_dict['conv1_7x7_s2.weight'] = state_dict['conv1_7x7_s2.weight'].mean(dim=1,keepdim=True).expand([64,3 * self.new_length,7,7]).contiguous().float()
-              
-              state_dict = {'base_model.'+ k : v for k,v in state_dict.items()}
-              
-              for k, v in state_dict.items():
-                
-                if k == 'base_model.fc_action.weight':
-                  state_dictTemp["base_model.last_linear.weight"] = torch.zeros([1000, 1024])
-                elif k == 'base_model.fc_action.bias':
-                  state_dictTemp["base_model.last_linear.bias"] = torch.zeros([1000])
-                else:
-                  state_dictTemp[k]=torch.squeeze(v, dim=0)
-             
-              self.load_state_dict(state_dictTemp) 
-            
             self.last_layer_name = 'last_linear'
             self.input_size = 224
             self.input_mean = [104, 117, 128]
@@ -211,6 +192,28 @@ class TSN_model(nn.Module):
         print('The modified 1st layer is',new_conv)
         return base_model
       
+    def AddKinWeights(self,KinWeights):
+      state_dictTemp = {}
+      print('Loading Kinetics weights')
+      state_dict = torch.load(KinWeights)
+
+      if self.modality == 'RGBDiff':
+        print('Convert flow weights to RGBDiff weights')
+        state_dict['conv1_7x7_s2.weight'] = state_dict['conv1_7x7_s2.weight'].mean(dim=1,keepdim=True).expand([64,3 * self.new_length,7,7]).contiguous().float()
+
+      state_dict = {'base_model.'+ k : v for k,v in state_dict.items()}
+
+      for k, v in state_dict.items():
+
+        if k == 'base_model.fc_action.weight':
+          state_dictTemp["base_model.last_linear.weight"] = torch.zeros([1000, 1024])
+        elif k == 'base_model.fc_action.bias':
+          state_dictTemp["base_model.last_linear.bias"] = torch.zeros([1000])
+        else:
+          state_dictTemp[k]=torch.squeeze(v, dim=0)
+
+      self.load_state_dict(state_dictTemp) 
+            
       
     def train(self, mode=True):
       """

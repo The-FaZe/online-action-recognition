@@ -129,8 +129,8 @@ class TSN_model(nn.Module):
         else:
             setattr(self.base_model, self.last_layer_name, nn.Dropout(self.dropout))
             self.new_fc = nn.Linear(features_dim, num_classes)
-            self.base_model.last_layer_name = self.new_fc
-            print('Dropout Layer added and The modified linear layer is :', self.new_fc)
+            self.base_model.last_Linear = self.new_fc
+            print('Dropout Layer added and The modified linear layer is :',self.base_model.last_Linear)
         
         #Modify Wighets of newly created Linear layer
         std=0.001
@@ -138,8 +138,8 @@ class TSN_model(nn.Module):
             normal_(getattr(self.base_model, self.last_layer_name).weight,0,std)
             constant_(getattr(self.base_model, self.last_layer_name).bias,0)
         else:
-            normal_(self.base_model.last_layer_name.weight, 0, std)
-            constant_(self.base_model.last_layer_name.bias,0)
+            normal_(self.base_model.last_linear.weight, 0, std)
+            constant_(self.base_model.last_linear.bias,0)
        
     def Modify_RGBDiff_Model(self, base_model, keep_rgb=False):
       
@@ -339,7 +339,7 @@ class TSN_model(nn.Module):
         FProp = self.base_model(input) 
         #If the dropout layer is added to the model then there's one more layer to propagate through
         if self.dropout > 0:
-            FProp = self.new_fc(FProp)
+            FProp = self.base_model.last_Linear(FProp)
         #Propagate through softmax too
         if not self.before_softmax:
             FProp = self.softmax(FProp)

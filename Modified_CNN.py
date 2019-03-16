@@ -129,8 +129,7 @@ class TSN_model(nn.Module):
         else:
             setattr(self.base_model, self.last_layer_name, nn.Dropout(self.dropout))
             self.new_fc = nn.Linear(features_dim, num_classes)
-            self.base_model.last_Linear = self.new_fc
-            print('Dropout Layer added and The modified linear layer is :',self.base_model.last_Linear)
+            print('Dropout Layer added and The modified linear layer is :',self.new_fc)
         
         #Modify Wighets of newly created Linear layer
         std=0.001
@@ -138,8 +137,8 @@ class TSN_model(nn.Module):
             normal_(getattr(self.base_model, self.last_layer_name).weight,0,std)
             constant_(getattr(self.base_model, self.last_layer_name).bias,0)
         else:
-            normal_(self.base_model.last_linear.weight, 0, std)
-            constant_(self.base_model.last_linear.bias,0)
+            normal_(self.new_fc.weight, 0, std)
+            constant_(self.new_fc.bias,0)
        
     def Modify_RGBDiff_Model(self, base_model, keep_rgb=False):
       
@@ -203,16 +202,25 @@ class TSN_model(nn.Module):
         state_dict['conv1_7x7_s2.weight'] = state_dict['conv1_7x7_s2.weight'].mean(dim=1,keepdim=True).expand([64,3 * self.new_length,7,7]).contiguous().float()
 
       state_dict = {'base_model.'+ k : v for k,v in state_dict.items()}
-
-      for k, v in state_dict.items():
-
-        if k == 'base_model.fc_action.weight':
-          state_dictTemp["base_model.last_linear.weight"] = torch.zeros([1000, 1024])
-        elif k == 'base_model.fc_action.bias':
-          state_dictTemp["base_model.last_linear.bias"] = torch.zeros([1000])
-        else:
-          state_dictTemp[k]=torch.squeeze(v, dim=0)
-
+      
+      if self.Dropout == 0:
+        for k, v in state_dict.items():
+          if k == 'base_model.fc_action.weight':
+            state_dictTemp["base_model.last_linear.weight"] = torch.zeros([1000, 1024])
+          elif k == 'base_model.fc_action.bias':
+            state_dictTemp["base_model.last_linear.bias"] = torch.zeros([1000])
+          else:
+            state_dictTemp[k]=torch.squeeze(v, dim=0)
+            
+      else:
+        for k, v in state_dict.items():
+          if k == 'base_model.fc_action.weight':
+            state_dictTemp["new_fc.weight"] = torch.zeros([1000, 1024])
+          elif k == 'base_model.fc_action.bias':
+            state_dictTemp["new_fc.bias"] = torch.zeros([1000])
+          else:
+            state_dictTemp[k]=torch.squeeze(v, dim=0)        
+            
       self.load_state_dict(state_dictTemp) 
             
       

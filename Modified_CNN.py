@@ -60,7 +60,7 @@ class TSN_model(nn.Module):
             print("Done. RGBDiff model is ready.")
             
         if self.KinWeights :
-          self.AddKinWeights(self,self.KinWeights)
+          self.AddKinWeights(self.KinWeights)
         
         #Creating Consensus layer (Only 'avg' and 'identity' are available)
         self.consensus = ConsensusModule(consensus_type)                    

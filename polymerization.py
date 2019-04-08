@@ -131,7 +131,7 @@ def First_step():
            cropping,
            Stack(roll=args.arch == 'BNInception'),
            ToTorchFormatTensor(div=args.arch != 'BNInception'),
-           GroupNormalize(model.input_mean, model.input_std),
+           GroupNormalize(model_RGB.input_mean, model_RGB.input_std),
                    ])
     
     

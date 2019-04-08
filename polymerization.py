@@ -64,19 +64,14 @@ def First_step():
   test_segments = args.test_segments
   
   #this function do forward propagation and returns scores
-  def eval_video(data):
+  def eval_video(data, model):
       """
       Evaluate single video
       video_data : Tuple has 3 elments (data in shape (crop_number,num_segments*length,H,W), label)
       return     : predictions and labels
       """
-      if args.modality == 'RGB':
-          length = 3
-      elif args.modality == 'RGBDiff':
-          length = 18
-      else:
-          raise ValueError("Unknown modality " + args.modality)
-    
+
+
       with torch.no_grad():
           #reshape data to be in shape of (num_segments*crop_number,length,H,W)
           #Forword Propagation
@@ -94,7 +89,7 @@ def First_step():
           #Take mean of cropped images to be in shape (num_segments,1,num_classes)
           output_np = output_np.mean(axis=0).reshape((test_segments,1,num_class))
           output_np = output_np.mean(axis=0)
-      return output_np   
+      return output_np      
     
     
   action_label = label_dic(args.classInd_file)

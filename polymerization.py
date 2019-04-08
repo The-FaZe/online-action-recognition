@@ -24,7 +24,8 @@ parser = argparse.ArgumentParser(
     description="Standard video-level testing")
 parser.add_argument('dataset', type=str, choices=['ucf101', 'hmdb51', 'kinetics'])
 #parser.add_argument('modality', type=str, choices=['RGB', 'Flow', 'RGBDiff'])
-parser.add_argument('weights', type=str)
+parser.add_argument('weights', nargs='+', type=str,
+                    help='1st and 2nd index is RGB and RGBDiff weights respectively')
 parser.add_argument('--arch', type=str, default="BNInception")
 parser.add_argument('--test_segments', type=int, default=25)
 parser.add_argument('--test_crops', type=int, default=1)
@@ -38,6 +39,7 @@ parser.add_argument('--video', type=str, default='')
 parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
 parser.add_argument('--gpus', nargs='+', type=int, default=None)
+parser.add_argument('--score_weights', nargs='+', type=float, default=[1,1.5])
 
 args = parser.parse_args()
 

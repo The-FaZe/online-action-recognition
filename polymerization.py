@@ -23,7 +23,7 @@ import multiprocessing as mp
 parser = argparse.ArgumentParser(
     description="Standard video-level testing")
 parser.add_argument('dataset', type=str, choices=['ucf101', 'hmdb51', 'kinetics'])
-parser.add_argument('modality', type=str, choices=['RGB', 'Flow', 'RGBDiff'])
+#parser.add_argument('modality', type=str, choices=['RGB', 'Flow', 'RGBDiff'])
 parser.add_argument('weights', type=str)
 parser.add_argument('--arch', type=str, default="BNInception")
 parser.add_argument('--test_segments', type=int, default=25)

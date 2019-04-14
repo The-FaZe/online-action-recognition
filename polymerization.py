@@ -7,9 +7,9 @@ import torchvision.transforms as Transforms
 
 
 #from matplotlib import pyplot as plt
-
 from Modified_CNN import TSN_model
 from transforms import *
+from var_evaluation import Evaluation
 
 import argparse
 
@@ -28,7 +28,7 @@ parser.add_argument('weights', nargs='+', type=str,
                     help='1st and 2nd index is RGB and RGBDiff weights respectively')
 parser.add_argument('--arch', type=str, default="BNInception")
 parser.add_argument('--test_segments', type=int, default=25)
-parser.add_argument('--test_crops', type=int, default=1)
+#parser.add_argument('--test_crops', type=int, default=1)
 parser.add_argument('--input_size', type=int, default=224)
 parser.add_argument('--crop_fusion_type', type=str, default='avg',
                     choices=['avg', 'max', 'topk'])
@@ -40,6 +40,7 @@ parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
 parser.add_argument('--gpus', nargs='+', type=int, default=None)
 parser.add_argument('--score_weights', nargs='+', type=float, default=[1,1.5])
+parser.add_argument('--psi', type=int, default=10)
 
 args = parser.parse_args()
 
@@ -60,7 +61,7 @@ def label_dic(classInd):
 
 #this function takes one video at a time and outputs the first 5 scores
 def First_step():
-  num_crop = args.test_crops  
+  #num_crop = args.test_crops  
   test_segments = args.test_segments
   
   #this function do forward propagation and returns scores
@@ -85,9 +86,9 @@ def First_step():
       
           output_np = output.data.cpu().numpy().copy()    
           #Reshape numpy array to (num_crop,num_segments,num_classes)
-          output_np = output_np.reshape((num_crop, test_segments, num_class))
+          #output_np = output_np.reshape((num_crop, test_segments, num_class))
           #Take mean of cropped images to be in shape (num_segments,1,num_classes)
-          output_np = output_np.mean(axis=0).reshape((test_segments,1,num_class))
+          output_np = output_np.reshape((test_segments, num_class))
           output_np = output_np.mean(axis=0)
       return output_np      
     
@@ -163,7 +164,7 @@ def First_step():
         
         frames.append(frame)
       
-        if len(frames) == 18:       
+        if len(frames) == test_segments*6:       
             frames = transform(frames).cuda()
             scores_RGB = eval_video(frames[0:len(frames):6], 'RGB')   
             scores_RGBDiff = eval_video(frames[:], 'RGBDiff')
@@ -171,9 +172,8 @@ def First_step():
             final_scores = args.score_weights[0]*scores_RGB + args.score_weights[1] * scores_RGBDiff
             #final_scores = softmax(torch.FloatTensor(final_scores))
             #final_scores = final_scores.data.cpu().numpy().copy()
-            
             #five_scores = np.argsort(final_scores)[0][::-1][:5]
-            #action_checker = Evaluation(list(final_scores[0][five_scores]), psi=0.1)
+            #action_checker = Evaluation(list(final_scores[0][five_scores]), args.psi)
             
             top5_actions.import_scores(final_scores[0,])
             indices,_,scores = top5_actions.get_top_N_actions()

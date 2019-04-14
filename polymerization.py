@@ -161,9 +161,7 @@ def First_step():
       
         frame = Image.fromarray(frame)
         
-        if frame_count % 12 < 6:
-            frames.append(frame)
-            print('loop, ', frame_count)
+        frames.append(frame)
       
         if len(frames) == 18:       
             frames = transform(frames).cuda()

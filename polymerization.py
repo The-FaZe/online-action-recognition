@@ -14,11 +14,9 @@ from var_evaluation import Evaluation
 import argparse
 
 #--------------------Communication import--------------------------
-from communication import Streaming
-from communication import Network
-from communication.TopN import Top_N
-import threading
-import multiprocessing as mp
+from comms_modules.Network import set_server
+from comms_modules.Streaming import rcv_frames_thread,send_results_thread
+from comms_modules.TopN import Top_N
 
 parser = argparse.ArgumentParser(
     description="Standard video-level testing")
@@ -41,6 +39,11 @@ parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
 parser.add_argument('--gpus', nargs='+', type=int, default=None)
 parser.add_argument('--score_weights', nargs='+', type=float, default=[1,1.5])
 parser.add_argument('--psi', type=int, default=10)
+
+
+
+
+parser.add_argument('--test',dest = 'test',action='store_true',help='coloring the output scores with red color in case of NoActivity case')
 
 args = parser.parse_args()
 
@@ -147,13 +150,14 @@ def First_step():
    
   frames = []  
   frame_count = 0 
+  action_checker=True
   
   try: 
     top5_actions = Top_N(args.classInd_file)
-    Tunnel_ = True
-    conn,T_thr = Network.set_server(port=6666,Tunnel=Tunnel_,n=1)
-    rcv_frames = Streaming.rcv_frames_thread(connection=conn[0])
-    send_results = Streaming.send_results_thread(connection=conn[1])
+    conn,T_thr =set_server(Tunnel=True,n=1)
+    rcv_frames = rcv_frames_thread(connection=conn[0])
+    send_results = send_results_thread(connection=conn[1],test=args.test)
+
     
     while (rcv_frames.isAlive() and send_results.isAlive()):
         frame,status = rcv_frames.get()
@@ -173,16 +177,15 @@ def First_step():
             #final_scores = softmax(torch.FloatTensor(final_scores))
             #final_scores = final_scores.data.cpu().numpy().copy()
             #five_scores = np.argsort(final_scores)[0][::-1][:5]
-            #action_checker = Evaluation(list(final_scores[0][five_scores]), args.psi)
+            action_checker = Evaluation(list(final_scores[0][five_scores]), args.psi)
             
             top5_actions.import_scores(final_scores[0,])
             indices,_,scores = top5_actions.get_top_N_actions()
-            send_results.put(status=status,scores=(*indices,*scores))
-          
+            send_results.put(status=status,scores=(*indices,*scores),Actf=action_checker)
             frames = [] 
           
         else:
-            send_results.put(status=status)
+            send_results.put(status=status,Actf=action_checker)
             
         frame_count += 1
           

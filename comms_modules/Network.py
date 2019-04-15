@@ -11,7 +11,7 @@ import subprocess as sp
 # A method to perfrom tunneling in the cmd on the HPC end
 def tunneling_cmd_hpc_server(port):
     s = "localhost:"+port+":localhost:"+port
-    s=sp.run(["ssh","-R",s,"mgmt02","-N"])
+    s=sp.run(["ssh","-R",s,"login01","-N"])
 
 def tunneling_cmd_hpc_client(port):
     port = str(port)

@@ -6,9 +6,9 @@ import threading
 import cv2
 import multiprocessing as mp
 from collections import deque
-from communication import Network
-from communication import Streaming
-from communication.TopN import Top_N
+from itertools import cycle
+from . import Network,Streaming
+from .TopN import Top_N
 # A class to generate random index that segment the real time stream
 # then pick snippets out of every segment in real time behaviour 
 class decision():
@@ -66,7 +66,7 @@ class thrQueue():
         self.queue_.clear()
         
         
-
+"""
 class Cap_Thread(threading.Thread):
     
     def __init__(self,fps_old,fps_new,port,id_=0):
@@ -109,10 +109,10 @@ class Cap_Thread(threading.Thread):
         self.frames.close()
         print ('No More frames to capture ')
 
-
+"""
 class Cap_Process(mp.Process):
     
-    def __init__(self,fps_old,fps_new,id_,port,ip="",Tunnel=True,rgb=True):
+    def __init__(self,fps_old,fps_new,id_,port,ip="",Tunnel=True,rgb=True,N1=1,N0=0):
         self.frames = mp.Queue(0)
         self.key = mp.Value('b',True)
         self.rgb = rgb
@@ -121,6 +121,8 @@ class Cap_Process(mp.Process):
         self.port = port
         self.ip = ip
         self.Tunnel = Tunnel
+        self.N1=N1
+        self.N0=N0
         mp.Process.__init__(self)
         self.start()
     def run(self):
@@ -129,10 +131,11 @@ class Cap_Process(mp.Process):
                 ip=self.ip,Tunnel=self.Tunnel)
             client2 = Network.set_client(port=self.port,
                 ip=self.ip,Tunnel=self.Tunnel)
-            vid_cap = cv2.VideoCapture(self.id_)
-            success, frame_ = vid_cap.read()
+            cam_cap = cv2.VideoCapture(self.id_)
+            success, frame_ = cam_cap.read()
+            itern = cycle(self.N1*(1,)+self.N0*(0,))
             if not success:
-                vid_cap.release()
+                cam_cap.release()
                 send_frames.close()
                 self.frames.put(True)
                 return
@@ -148,26 +151,34 @@ class Cap_Process(mp.Process):
             init = 0
             while (success and self.key.value and send_frames.isAlive() and rcv_results.isAlive()):
                 if self.index.index():
-                    rcv_results.add()
-                    if self.rgb:
-                        frame_= frame_[...,::-1]    # Converting from BGR to RGB  
-                    send_frames.put(cv2.resize(frame_,(224,224)))
-                    count,status,score_=rcv_results.get()
-                    if len(score_[0]):
-                        init = 1
-                        top5_actions.import_indecies_top_N_scores(score_)
-                    if len(status):
-                        s1 ="Delay of the processing is "+str(count)+" fps"
-                        s2 = "The number of waiting frames in buffer is "+str(self.frames.qsize())+" frame"
-                        s3 = "the rate of sending frames is "+str(status[0])+" fps"
-                        s4 = "The rate of sending data is "+str(status[1])+" KB/s"
-                        s = (s1,s2,s3,s4)
-                        add_status(frame_,s=s)
-                    if init:
-                        top5_actions.add_scores(frame_)
-                    self.frames.put(frame_)
+                    if next(itern):
+                        rcv_results.add()
+                        if self.rgb:
+                            frame_ = cv2.cvtColor(frame_, cv2.COLOR_BGR2RGB)    # Converting from BGR to RGB  
+                        send_frames.put(cv2.resize(frame_,(224,224)))
+                        count,status,score_,NoAcf,test=rcv_results.get()
+                        if len(score_[0]):
+                            init = True
+                            top5_actions.import_indecies_top_N_scores(score_)
+                        if len(status):
+                            s1 ="Delay of the processing is "+str(count)+" fps"
+                            s2 = "The number of waiting frames in buffer is "+str(self.frames.qsize())+" frame"
+                            s3 = "the rate of sending frames is "+str(status[0])+" fps"
+                            s4 = "The rate of sending data is "+str(status[1])+" KB/s"
+                            s = (s1,s2,s3,s4)
+                            add_status(frame_,s=s)
+
+                        if test:
+                            top5_actions.add_scores(frame_,fontcolor=(0,0,255))
+                        elif NoAcf:
+                            add_status(frame_,s=("No Action",),x=560,y=470)
+                        elif init:
+                            top5_actions.add_scores(frame_)
+                        else :
+                            add_status(frame_,s=('Start Recognition',),x=510,y=470)
+                        self.frames.put(frame_)
         
-                success, frame_ = vid_cap.read()
+                success, frame_ = cam_cap.read()
         except (KeyboardInterrupt,IOError,OSError) as e :
             pass
 
@@ -178,7 +189,7 @@ class Cap_Process(mp.Process):
             rcv_results.close()
             client.close()
             print("The program cut the connection")
-            vid_cap.release()
+            cam_cap.release()
             print("The program broke the connection to the camera")
 
 
@@ -199,20 +210,18 @@ class Cap_Process(mp.Process):
 
 class mean():
     def __init__(self,max = 30):
-        self.queue = np.array([])
+        self.queue = deque(max*[False],maxlen=max)
         self.max = max
-    def mean(self,inp,dim=2):
-        if self.queue.size is 0:
-            self.queue = np.array(inp)
-            self.queue = np.expand_dims(self.queue , axis=0)
-        else:
-            self.queue = np.concatenate((np.expand_dims(inp , axis=0)
-                                         ,self.queue), axis=0)
-            if (self.queue.shape[0] >= self.max):
-                self.queue = self.queue[0:self.max-1]
-        return np.mean(self.queue, axis=0)
-
-
+        self.init = False
+        self.out = False
+        self.c = 0
+    def mean(self,inp):
+        self.c = min(self.c+1,self.max)
+        carry = self.queue.popleft()
+        inp = np.array(inp)
+        self.queue.append(inp)
+        self.out += inp-carry
+        return self.out/self.c
 
 
 # A method to add status on the image the frame_ is the incoming image and s1,s2,s3 are the txt to put on the image

@@ -1,9 +1,9 @@
-from communication import Network
+from . import Network, Segmentation
 import multiprocessing as mp
 from time import time
 import threading
+from cv2 import cvtColor,COLOR_BGR2RGB
 from socket import socket
-from communication import Segmentation
 from struct import pack,unpack,calcsize
 
 class rcv_frames_thread(threading.Thread):
@@ -63,7 +63,7 @@ class rcv_frames_thread(threading.Thread):
         frame_ , msglen , spf = frame_
         frame_ = Network.decode_frame(frame_) #decoding the frames
         if rgb:
-            frame_ = frame_[...,::-1]    # Converting from BGR to RGB
+            frame_ = cvtColor(frame_, COLOR_BGR2RGB)    # Converting from BGR to RGB
         [msglen_rate,spf] = self.m.mean([msglen,spf])
         status = (1/spf,msglen_rate/(spf*1000))        
 
@@ -110,28 +110,36 @@ class send_frames_thread(threading.Thread):
 
 
 class send_results_thread(threading.Thread):
-    def __init__(self,connection=socket(),nmb_scores=5,nmb_status=2):
+    def __init__(self,connection=socket(),nmb_scores=5,nmb_status=2,test=False):
         self.key_ = True
         self.results = Segmentation.thrQueue()
         self.connection = connection
         self.check = (nmb_status,2*nmb_scores,2*nmb_scores+nmb_status)
+        self.fmb = (">{}f".format(nmb_status)
+            ,">{}B{}f".format(nmb_scores,nmb_scores)
+            ,">{}f{}B{}f".format(nmb_status,nmb_scores,nmb_scores),None)
+        self.test = test
         threading.Thread.__init__(self)
         self.start()
+
     def run(self):
         try:
             while (self.key_):
-
                 result = self.results.get()
                 if result is 0:
                     break
-                flag = self.check.index(len(result))
-                flag_ = pack(">B", flag)
-                self.connection.sendall(flag_)
-                nmb_status = (not(flag%2))*self.check[0]
-                nmb_scores = (bool(flag))*self.check[1]//2
-                fmb = ">"+nmb_status*"f"+nmb_scores*"B"+nmb_scores*"f"
-                results_ = pack(fmb,*result)
-                self.connection.sendall(results_)
+                elif result[0]:
+                    flag = self.check.index(len(result[0]))
+                    flagb = pack(">B", flag | (0x80*result[1]))
+                    self.connection.sendall(flagb)
+                    results_ = pack(self.fmb[flag],*result[0])
+                    self.connection.sendall(results_)
+                elif result[1]:
+                    flag = flag | 0x80
+                    flagb = pack(">B", flag)
+                    self.connection.sendall(flagb)
+                else:
+                    pass
         except(KeyboardInterrupt,IOError,OSError) as e:
             pass
 
@@ -140,11 +148,11 @@ class send_results_thread(threading.Thread):
             self.results.close()
             print('sending results is stopped')
 
-    def put(self,status=(),scores=()):
-        self.results.put(status + scores)
+    def put(self,status=(),scores=(),Actf=False):
+        self.results.put([status + (scores*(Actf|self.test)) ,bool(not(Actf))])
 
     def close(self):
-        self.key_ = False # breaking the while loop of it's still on in the parallel process(run)
+        self.key_ = False 
         self.results.close()
         self.join() # waiting for the parallel process to terminate
 
@@ -157,12 +165,15 @@ class rcv_results_thread(threading.Thread):
         self.connection = connection
         self.fmb = (">{}f".format(nmb_status)
             ,">{}B{}f".format(nmb_scores,nmb_scores)
-            ,">{}f{}B{}f".format(nmb_status,nmb_scores,nmb_scores))
+            ,">{}f{}B{}f".format(nmb_status,nmb_scores,nmb_scores),None)
         self.count = 0
         self.result_ = ()
         self.cond = threading.Condition()
         self.nmb_scores = nmb_scores
         self.nmb_status = nmb_status
+        self.test = False
+        self.event = threading.Event()
+        self.event.clear()
         threading.Thread.__init__(self)
         self.start()
 
@@ -172,12 +183,18 @@ class rcv_results_thread(threading.Thread):
             while (self.key_):
                 flag = Network.recv_msg(self.connection, 1 , 1)
                 flag = int(unpack(">B",flag)[0])
+                NoActf = bool(flag & 0x80)
+                flag = flag & 0x7F
                 fmb = self.fmb[flag]
-                results = Network.recv_msg(self.connection,calcsize(fmb), 2048)
-                results = unpack(fmb,results)
+                if bool(fmb):
+                    results = Network.recv_msg(self.connection,calcsize(fmb), 2048)
+                    results = unpack(fmb,results)
+                else:
+                    results = None
                 with self.cond:
-                    self.result_ = results
-                    self.count -=1
+                    self.result_ = (results,NoActf)
+                    self.count -= 1
+                self.event.set()
         except(KeyboardInterrupt,IOError,OSError) as e:
             pass
         finally:
@@ -186,22 +203,29 @@ class rcv_results_thread(threading.Thread):
 
 
     def get(self):
-        with self.cond:
-            result = self.result_
-            count = self.count
-        if(len(result)==self.nmb_status):
-            status = result
-            action_index = ()
-            scores = ()
-        elif(len(result)==2*self.nmb_scores):
-            status =()
-            action_index = result[:self.nmb_scores]
-            scores = result[self.nmb_scores:]
+        if self.event.is_set():
+            with self.cond:
+                result = self.result_[0]
+                NoAcf = self.result_[1]
+                count = self.count
+            if(len(result)==self.nmb_status):
+                status = result
+                action_index = ()
+                scores = ()
+            elif(len(result)==2*self.nmb_scores):
+                status =()
+                action_index = result[:self.nmb_scores]
+                scores = result[self.nmb_scores:]
+            else:
+                status = result[:self.nmb_status]
+                action_index = result[-self.nmb_scores*2:-self.nmb_scores]
+                scores = result[-self.nmb_scores:]
+                self.test = NoAcf
+            return count,status,(action_index,scores),NoAcf,self.test
         else:
-            status = result[:self.nmb_status]
-            action_index = result[-self.nmb_scores*2:-self.nmb_scores]
-            scores = result[-self.nmb_scores:]
-        return count,status,(action_index,scores)
+            with self.cond:
+                count = self.count
+            return count,(),((),()),False,self.test
 
     def add(self):
         with self.cond:
@@ -211,7 +235,7 @@ class rcv_results_thread(threading.Thread):
         self.key_ = False # breaking the while loop of it's still on in the parallel process(run)
         self.join() # waiting for the parallel process to terminate
 
-
+"""
 # A class inherited from the multiprocessing module
 # The class is a client receiving frames from the server processing of the received frame is on the main process
 # receiving of the frame is on another process 
@@ -290,3 +314,4 @@ class client_rcv_frames_process(mp.Process):
         self.frames.close() # declaring there is no frames will be put on the shared queue from the main process
         self.join() # waiting for the parallel process to terminate
         print('The program has been terminated ')
+"""

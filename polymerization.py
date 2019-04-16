@@ -38,7 +38,7 @@ parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
 parser.add_argument('--gpus', nargs='+', type=int, default=None)
 parser.add_argument('--score_weights', nargs='+', type=float, default=[1,1.5])
-parser.add_argument('--psi', type=int, default=10)
+parser.add_argument('--psi', type=float, default=10)
 
 
 
@@ -178,11 +178,11 @@ def First_step():
             #final_scores = softmax(torch.FloatTensor(final_scores))
             #final_scores = final_scores.data.cpu().numpy().copy()
             #five_scores = np.argsort(final_scores)[0][::-1][:5]
-            action_checker = Evaluation(list(final_scores[0][five_scores]), args.psi)
-            
             top5_actions.import_scores(final_scores[0,])
-            indices,_,scores = top5_actions.get_top_N_actions()
-            send_results.put(status=status,scores=(*indices,*scores),Actf=action_checker)
+            indices_TopN,_,scores_TopN = top5_actions.get_top_N_actions()
+            action_checker = Evaluation(scores_TopN, args.psi)
+            
+            send_results.put(status=status,scores=(*indices_TopN,*scores_TopN),Actf=action_checker)
             frames = [] 
           
         else:

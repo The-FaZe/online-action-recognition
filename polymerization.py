@@ -38,7 +38,7 @@ parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
 parser.add_argument('--gpus', nargs='+', type=int, default=None)
 parser.add_argument('--score_weights', nargs='+', type=float, default=[1,1.5])
-parser.add_argument('--psi', type=int, default=10)
+parser.add_argument('--psi', type=float, default=10)
 
 
 

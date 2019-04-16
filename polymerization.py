@@ -26,7 +26,7 @@ parser.add_argument('weights', nargs='+', type=str,
                     help='1st and 2nd index is RGB and RGBDiff weights respectively')
 parser.add_argument('--arch', type=str, default="BNInception")
 parser.add_argument('--test_segments', type=int, default=25)
-#parser.add_argument('--test_crops', type=int, default=1)
+parser.add_argument('--test_crops', type=int, default=1)
 parser.add_argument('--input_size', type=int, default=224)
 parser.add_argument('--crop_fusion_type', type=str, default='avg',
                     choices=['avg', 'max', 'topk'])
@@ -66,6 +66,7 @@ def label_dic(classInd):
 def First_step():
   #num_crop = args.test_crops  
   test_segments = args.test_segments
+  num_crop = args.test_crops
   
   #this function do forward propagation and returns scores
   def eval_video(data, model):
@@ -89,9 +90,9 @@ def First_step():
       
           output_np = output.data.cpu().numpy().copy()    
           #Reshape numpy array to (num_crop,num_segments,num_classes)
-          #output_np = output_np.reshape((num_crop, test_segments, num_class))
+          output_np = output_np.reshape((num_crop, test_segments, num_class))
           #Take mean of cropped images to be in shape (num_segments,1,num_classes)
-          output_np = output_np.reshape((test_segments, num_class))
+          output_np = output_np.mean(axis=0).reshape((test_segments,1,num_class))
           output_np = output_np.mean(axis=0)
       return output_np      
     

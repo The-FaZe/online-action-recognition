@@ -149,6 +149,7 @@ class Cap_Process(mp.Process):
             rcv_results = Streaming.rcv_results_thread(connection=client2)
             score = ();
             init = 0
+            s = ("No Status Received",)
             while (success and self.key.value and send_frames.isAlive() and rcv_results.isAlive()):
                 if self.index.index():
                     if next(itern):
@@ -166,17 +167,21 @@ class Cap_Process(mp.Process):
                             s3 = "the rate of sending frames is "+str(status[0])+" fps"
                             s4 = "The rate of sending data is "+str(status[1])+" KB/s"
                             s = (s1,s2,s3,s4)
-                            add_status(frame_,s=s)
 
-                        if test:
-                            top5_actions.add_scores(frame_,fontcolor=(0,0,255))
-                        elif NoAcf:
-                            add_status(frame_,s=("No Action",),x=560,y=470)
-                        elif init:
-                            top5_actions.add_scores(frame_)
-                        else :
-                            add_status(frame_,s=('Start Recognition',),x=510,y=470)
-                        self.frames.put(frame_)
+
+                
+
+                add_status(frame_,s=s)
+
+                if test:
+                    top5_actions.add_scores(frame_,fontcolor=(0,0,255))
+                elif NoAcf:
+                    add_status(frame_,s=("No Assigned Action Detected",),x=450,y=470)
+                elif init:
+                    top5_actions.add_scores(frame_)
+                else :
+                    add_status(frame_,s=('Start Recognition',),x=510,y=470)
+                self.frames.put(frame_)
         
                 success, frame_ = cam_cap.read()
         except (KeyboardInterrupt,IOError,OSError) as e :

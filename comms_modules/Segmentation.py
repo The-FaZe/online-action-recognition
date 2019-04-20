@@ -148,7 +148,7 @@ class Cap_Process(mp.Process):
 
             rcv_results = Streaming.rcv_results_thread(connection=client2)
             score = ();
-            init = 0
+            initialized = False
             s = ("No Status Received",)
             while (success and self.key.value and send_frames.isAlive() and rcv_results.isAlive()):
                 if self.index.index():
@@ -157,27 +157,31 @@ class Cap_Process(mp.Process):
                         if self.rgb:
                             frame_ = cv2.cvtColor(frame_, cv2.COLOR_BGR2RGB)    # Converting from BGR to RGB  
                         send_frames.put(cv2.resize(frame_,(224,224)))
-                        count,status,score_,NoAcf,test=rcv_results.get()
-                        if len(score_[0]):
-                            init = True
-                            top5_actions.import_indecies_top_N_scores(score_)
-                        if len(status):
-                            s1 ="Delay of the processing is "+str(count)+" fps"
-                            s2 = "The number of waiting frames in buffer is "+str(self.frames.qsize())+" frame"
-                            s3 = "the rate of sending frames is "+str(status[0])+" fps"
-                            s4 = "The rate of sending data is "+str(status[1])+" KB/s"
-                            s = (s1,s2,s3,s4)
 
 
                 
+                count,status,score_,NoActf,test,New_out=rcv_results.get()
+                print(New_out)
+                if New_out[1]:
+                    initialized = True
+                    top5_actions.import_indecies_top_N_scores(score_)
+
+
+                if New_out[0]:
+                    s1 ="Delay of the processing is "+str(count)+" fps"
+                    s2 = "The number of waiting frames in buffer is "+str(self.frames.qsize())+" frame"
+                    s3 = "the rate of sending frames is "+str(status[0])+" fps"
+                    s4 = "The rate of sending data is "+str(status[1])+" KB/s"
+                    s = (s1,s2,s3,s4)
+
 
                 add_status(frame_,s=s)
 
-                if test:
+                if test and NoActf:
                     top5_actions.add_scores(frame_,fontcolor=(0,0,255))
-                elif NoAcf:
+                elif NoActf:
                     add_status(frame_,s=("No Assigned Action Detected",),x=450,y=470)
-                elif init:
+                elif initialized:
                     top5_actions.add_scores(frame_)
                 else :
                     add_status(frame_,s=('Start Recognition',),x=510,y=470)

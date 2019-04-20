@@ -41,9 +41,11 @@ parser.add_argument('--score_weights', nargs='+', type=float, default=[1,1.5])
 parser.add_argument('--psi', type=float, default=10)
 
 
-
-
 parser.add_argument('--test',dest = 'test',action='store_true',help='coloring the output scores with red color in case of NoActivity case')
+parser.add_argument('--key',dest = 'path', type=str,default=None)
+parser.add_argument('--user',dest = 'user' , type = str , default = 'alex039u2')
+parser.add_argument('--port',dest= 'port' , type = int , default = 6666)
+
 
 args = parser.parse_args()
 
@@ -155,7 +157,7 @@ def First_step():
   
   try: 
     top5_actions = Top_N(args.classInd_file)
-    conn,T_thr =set_server(Tunnel=True,n=1)
+    conn,Tun_sp = set_server(port=args.port,Tunnel=True,n=1,path=args.path,user = args.user)
     rcv_frames = rcv_frames_thread(connection=conn[0])
     send_results = send_results_thread(connection=conn[1],test=args.test)
 

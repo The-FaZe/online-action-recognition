@@ -130,7 +130,7 @@ class send_results_thread(threading.Thread):
                     break
                 elif result[0]:
                     flag = self.check.index(len(result[0]))
-                    flagb = pack(">B", flag | (0x80*result[1]))
+                    flagb = pack(">B", flag | (0x80*result[1]) | (0x40*self.test))
                     self.connection.sendall(flagb)
                     results_ = pack(self.fmb[flag],*result[0])
                     self.connection.sendall(results_)
@@ -172,8 +172,12 @@ class rcv_results_thread(threading.Thread):
         self.nmb_scores = nmb_scores
         self.nmb_status = nmb_status
         self.test = False
-        self.event = threading.Event()
-        self.event.clear()
+        self.New_out = [False,False]
+        self.NoActf = False
+        self.action_index = []
+        self.scores = []
+        self.status = []
+
         threading.Thread.__init__(self)
         self.start()
 
@@ -184,17 +188,19 @@ class rcv_results_thread(threading.Thread):
                 flag = Network.recv_msg(self.connection, 1 , 1)
                 flag = int(unpack(">B",flag)[0])
                 NoActf = bool(flag & 0x80)
-                flag = flag & 0x7F
+                test = bool(flag&0x40)
+                flag = flag & 0x0F
                 fmb = self.fmb[flag]
                 if bool(fmb):
                     results = Network.recv_msg(self.connection,calcsize(fmb), 2048)
                     results = unpack(fmb,results)
+                    self.update(result=results,NoActf=NoActf,test = test)
                 else:
-                    results = None
-                with self.cond:
-                    self.result_ = (results,NoActf)
-                    self.count -= 1
-                self.event.set()
+                    with self.cond:
+                        self.NoActf = NoActf
+                        self.test = test
+
+
         except(KeyboardInterrupt,IOError,OSError) as e:
             pass
         finally:
@@ -202,34 +208,37 @@ class rcv_results_thread(threading.Thread):
             print('receiving results is stopped')
 
 
-    def get(self):
-        if self.event.is_set():
-            with self.cond:
-                result = self.result_[0]
-                NoAcf = self.result_[1]
-                count = self.count
+    def update(self,result,NoActf,test):
+        with self.cond:
+            self.NoActf = NoActf
+            self.test = test
             if(len(result)==self.nmb_status):
-                status = result
-                action_index = ()
-                scores = ()
+                self.status = result
+                self.New_out[0] = True  
             elif(len(result)==2*self.nmb_scores):
-                status =()
-                action_index = result[:self.nmb_scores]
-                scores = result[self.nmb_scores:]
+                self.action_index = result[:self.nmb_scores]
+                self.scores = result[self.nmb_scores:]
+                self.New_out[1] = True
             else:
-                status = result[:self.nmb_status]
-                action_index = result[-self.nmb_scores*2:-self.nmb_scores]
-                scores = result[-self.nmb_scores:]
-                self.test = NoAcf
-            return count,status,(action_index,scores),NoAcf,self.test
-        else:
-            with self.cond:
-                count = self.count
-            return count,(),((),()),False,self.test
+                self.status = result[:self.nmb_status]
+                self.action_index = result[-self.nmb_scores*2:-self.nmb_scores]
+                self.scores = result[-self.nmb_scores:]
+                self.New_out = [True,True]
+            self.count -= 1
 
     def add(self):
         with self.cond:
             self.count += 1
+
+    def get(self):
+        with self.cond:
+            New_out = self.New_out 
+            self.New_out = [False,False] 
+            return self.count,self.status,[self.action_index,self.scores],self.NoActf,self.test,New_out
+
+
+
+
 
     def close(self):
         self.key_ = False # breaking the while loop of it's still on in the parallel process(run)

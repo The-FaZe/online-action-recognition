@@ -109,12 +109,12 @@ class Top_N(object):
         
 
 
-    def add_scores(self,frame_,x=480,y=380,j=20,font = cv2.FONT_HERSHEY_SIMPLEX
+    def add_scores(self,frame_,x=460,y=380,j=20,font = cv2.FONT_HERSHEY_SIMPLEX
         ,fontScale = 0.4,fontcolor=(255,255,255),lineType=1):
         c = 0
         for i in self.indecies:
                 l = j*c
-                s = self.actions_list[i]+':'+"{0:.4f}".format(self.top_N_scores[c]*100)
+                s = self.actions_list[i]+' : '+"{0:.4f}".format(self.top_N_scores[c])
                 cv2.putText(frame_,s, (x,y+l) 
                     ,font, fontScale, fontcolor, lineType)
                 c +=1

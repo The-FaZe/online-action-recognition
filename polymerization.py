@@ -67,7 +67,7 @@ def First_step():
       
       if not overlap_flag:
           pre_scoresRGB = torch.zeros((3,101)).cuda()
-          pre_scoresRGBDiff = torch.zeros((3,101))
+          pre_scoresRGBDiff = torch.zeros((3,101)).cuda()
           overlap_flag = not overlap_flag
       
       with torch.no_grad():

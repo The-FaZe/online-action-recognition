@@ -46,23 +46,7 @@ parser.add_argument('--key',dest = 'path', type=str,default=None)
 parser.add_argument('--user',dest = 'user' , type = str , default = 'alex039u2')
 parser.add_argument('--port',dest= 'port' , type = int , default = 6666)
 
-
 args = parser.parse_args()
-
-#this function returns a dictionary (keys are string label numbers & values are action labels)
-def label_dic(classInd):
-  action_label={}
-  with open(classInd) as f:
-      content = f.readlines()
-      content = [x.strip('\r\n') for x in content]
-  f.close()
-
-  for line in content:
-      label, action = line.split(' ')
-      if action not in action_label.keys():
-          action_label[label] = action
-          
-  return action_label
 
 #this function takes one video at a time and outputs the first 5 scores
 def First_step():
@@ -70,25 +54,35 @@ def First_step():
   test_segments = args.test_segments
   num_crop = args.test_crops
   
+  overlap_flag = False
+  
   #this function do forward propagation and returns scores
   def eval_video(data, model):
       """
       Evaluate single video
       video_data : Tuple has 3 elments (data in shape (crop_number,num_segments*length,H,W), label)
       return     : predictions and labels
-      """
-
-
+      """          
+      global overlap_flag
+      
+      if not overlap_flag:
+          pre_scoresRGB = torch.zeros((3,101))
+          pre_scoresRGBDiff = torch.zeros((3,101))
+          
+      overlap_flag = not overlap_flag
+      
       with torch.no_grad():
           #reshape data to be in shape of (num_segments*crop_number,length,H,W)
           #Forword Propagation
           if model == 'RGB':
               input = data.view(-1, 3, data.size(1), data.size(2))
-              output = model_RGB(input)
+              output = model_RGB(torch.cat(pre_scoresRGB, input))
+              pre_scoresRGB = output.data[-3:,]
 
           elif model == 'RGBDiff':
               input = data.view(-1, 18, data.size(1), data.size(2))
-              output = model_RGBDiff(input)
+              output = model_RGBDiff(torch.cat(pre_scoresRGBDiff, input))
+              pre_scoresRGBDiff = output.data[-3:,]
       
           output_np = output.data.cpu().numpy().copy()    
           #Reshape numpy array to (num_crop,num_segments,num_classes)
@@ -97,9 +91,7 @@ def First_step():
           output_np = output_np.mean(axis=0).reshape((test_segments,1,num_class))
           output_np = output_np.mean(axis=0)
       return output_np      
-    
-    
-  action_label = label_dic(args.classInd_file)
+  
 
   if args.dataset == 'ucf101':
       num_class = 101

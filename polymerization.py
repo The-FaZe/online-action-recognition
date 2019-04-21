@@ -85,9 +85,9 @@ def First_step():
       
           output_np = output.data.cpu().numpy().copy()    
           #Reshape numpy array to (num_crop,num_segments,num_classes)
-          output_np = output_np.reshape((num_crop, test_segments, num_class))
+          output_np = output_np.reshape((num_crop, test_segments*2, num_class))
           #Take mean of cropped images to be in shape (num_segments,1,num_classes)
-          output_np = output_np.mean(axis=0).reshape((test_segments,1,num_class))
+          output_np = output_np.mean(axis=0).reshape((test_segments*2,1,num_class))
           output_np = output_np.mean(axis=0)
       return output_np      
   

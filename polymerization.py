@@ -75,12 +75,12 @@ def First_step():
           #Forword Propagation
           if model == 'RGB':
               input = data.view(-1, 3, data.size(1), data.size(2))
-              output = model_RGB(torch.cat(pre_scoresRGB, input))
+              output = model_RGB(torch.cat((pre_scoresRGB, input)))
               pre_scoresRGB = output.data[-3:,]
 
           elif model == 'RGBDiff':
               input = data.view(-1, 18, data.size(1), data.size(2))
-              output = model_RGBDiff(torch.cat(pre_scoresRGBDiff, input))
+              output = model_RGBDiff(torch.cat((pre_scoresRGBDiff, input)))
               pre_scoresRGBDiff = output.data[-3:,]
       
           output_np = output.data.cpu().numpy().copy()    

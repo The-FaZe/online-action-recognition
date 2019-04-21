@@ -63,13 +63,12 @@ def First_step():
       video_data : Tuple has 3 elments (data in shape (crop_number,num_segments*length,H,W), label)
       return     : predictions and labels
       """          
-      global overlap_flag
+      nonlocal overlap_flag
       
       if not overlap_flag:
           pre_scoresRGB = torch.zeros((3,101))
           pre_scoresRGBDiff = torch.zeros((3,101))
-          
-      overlap_flag = not overlap_flag
+          overlap_flag = not overlap_flag
       
       with torch.no_grad():
           #reshape data to be in shape of (num_segments*crop_number,length,H,W)

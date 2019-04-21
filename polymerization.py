@@ -48,13 +48,14 @@ parser.add_argument('--port',dest= 'port' , type = int , default = 6666)
 
 args = parser.parse_args()
 
+pre_scoresRGB = torch.zeros((3,101)).cuda()
+pre_scoresRGBDiff = torch.zeros((3,101)).cuda()
+
 #this function takes one video at a time and outputs the first 5 scores
 def First_step():
   #num_crop = args.test_crops  
   test_segments = args.test_segments
   num_crop = args.test_crops
-  
-  overlap_flag = False
   
   #this function do forward propagation and returns scores
   def eval_video(data, model):
@@ -63,24 +64,20 @@ def First_step():
       video_data : Tuple has 3 elments (data in shape (crop_number,num_segments*length,H,W), label)
       return     : predictions and labels
       """          
-      nonlocal overlap_flag
-      
-      if not overlap_flag:
-          pre_scoresRGB = torch.zeros((3,101)).cuda()
-          pre_scoresRGBDiff = torch.zeros((3,101)).cuda()
-          overlap_flag = not overlap_flag
+      global pre_scoresRGB
+      global pre_scoresRGBDiff
       
       with torch.no_grad():
           #reshape data to be in shape of (num_segments*crop_number,length,H,W)
           #Forword Propagation
           if model == 'RGB':
               input = data.view(-1, 3, data.size(1), data.size(2))
-              output = torch.cat((pre_scoresRGB,model_RGB(input)))
+              output = torch.cat((pre_scoresRGB, model_RGB(input)))
               pre_scoresRGB = output.data[-3:,]
 
           elif model == 'RGBDiff':
               input = data.view(-1, 18, data.size(1), data.size(2))
-              output = torch.cat((pre_scoresRGBDiff,model_RGBDiff(input)))
+              output = torch.cat((pre_scoresRGBDiff, model_RGBDiff(input)))
               pre_scoresRGBDiff = output.data[-3:,]
       
           output_np = output.data.cpu().numpy().copy()    

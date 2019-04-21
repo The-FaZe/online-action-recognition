@@ -66,7 +66,7 @@ def First_step():
       nonlocal overlap_flag
       
       if not overlap_flag:
-          pre_scoresRGB = torch.zeros((3,101))
+          pre_scoresRGB = torch.zeros((3,101)).cuda()
           pre_scoresRGBDiff = torch.zeros((3,101))
           overlap_flag = not overlap_flag
       
@@ -75,12 +75,12 @@ def First_step():
           #Forword Propagation
           if model == 'RGB':
               input = data.view(-1, 3, data.size(1), data.size(2))
-              output = model_RGB(torch.cat((pre_scoresRGB, input)))
+              output = torch.cat((pre_scoresRGB,model_RGB(input)))
               pre_scoresRGB = output.data[-3:,]
 
           elif model == 'RGBDiff':
               input = data.view(-1, 18, data.size(1), data.size(2))
-              output = model_RGBDiff(torch.cat((pre_scoresRGBDiff, input)))
+              output = torch.cat((pre_scoresRGBDiff,model_RGBDiff(input)))
               pre_scoresRGBDiff = output.data[-3:,]
       
           output_np = output.data.cpu().numpy().copy()    

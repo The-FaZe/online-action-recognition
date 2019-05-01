@@ -24,7 +24,7 @@ def tunneling_cmd_hpc_server(user,path,local_port):
 
 
 
-def set_server(ip,port,n_conn,Tunnel,hostname=None):
+def set_server(ip,port,n_conn,Tunnel,hostname=None,username=None):
     connection = []
     transport = None
     if Tunnel:
@@ -36,7 +36,7 @@ def set_server(ip,port,n_conn,Tunnel,hostname=None):
         sshclient.set_missing_host_key_policy(AutoAddPolicy())
         
         try:
-            sshclient.connect(hostname=hostname)
+            sshclient.connect(hostname=hostname,username=username)
         except(BadHostKeyException,SSHException
             ,AuthenticationException) as e:
             print("problem hapened ssh into {}".format(hostname))

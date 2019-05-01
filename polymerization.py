@@ -44,6 +44,7 @@ parser.add_argument('--psi', type=float, default=10)
 parser.add_argument('--test',dest = 'test',action='store_true',help='coloring the output scores with red color in case of NoActivity case')
 parser.add_argument('--p',dest= 'port' , type = int , default = 6666)
 parser.add_argument('--h',dest= 'hostname' , type = str , default = 'login01')
+parser.add_argument('--u',dest= 'hostname' , type = str , default = 'alex039u2')
 
 args = parser.parse_args()
 
@@ -141,7 +142,7 @@ def First_step():
   frames = []  
   action_checker=True
 
-  conn,transport = set_server(ip="0.0.0.0",port=args.port,Tunnel=True,n_conn=2,hostname= args.hostname)
+  conn,transport = set_server(ip="0.0.0.0",port=args.port,Tunnel=True,n_conn=2,hostname= args.hostname,username=args.username)
   if conn is None:
       return 
   

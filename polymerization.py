@@ -42,9 +42,8 @@ parser.add_argument('--psi', type=float, default=10)
 
 
 parser.add_argument('--test',dest = 'test',action='store_true',help='coloring the output scores with red color in case of NoActivity case')
-parser.add_argument('--key',dest = 'path', type=str,default=None)
-parser.add_argument('--user',dest = 'user' , type = str , default = 'alex039u2')
-parser.add_argument('--port',dest= 'port' , type = int , default = 6666)
+parser.add_argument('--p',dest= 'port' , type = int , default = 6666)
+parser.add_argument('--h',dest= 'hostname' , type = str , default = 'login01')
 
 args = parser.parse_args()
 
@@ -140,20 +139,31 @@ def First_step():
   scores = torch.tensor(np.zeros((1,101)), dtype=torch.float32).cuda()
    
   frames = []  
-  frame_count = 0 
   action_checker=True
+
+  conn,transport = set_server(ip="0.0.0.0",port=args.port,Tunnel=True,n_conn=2,hostname= args.hostname)
+  if conn is None:
+      return 
   
   try: 
     top5_actions = Top_N(args.classInd_file)
-    conn,Tun_sp = set_server(port=args.port,Tunnel=True,n=1,path=args.path,user = args.user)
     rcv_frames = rcv_frames_thread(connection=conn[0])
     send_results = send_results_thread(connection=conn[1],test=args.test)
 
     
     while (rcv_frames.isAlive() and send_results.isAlive()):
+        if rcv_frames.CheckReset():
+            frames = []
+            rcv_frames.ConfirmReset()
+
         frame,status = rcv_frames.get()
+
+
         if frame is 0:
-          break
+            break
+
+        if frame is None:
+           continue
       
         frame = Image.fromarray(frame)
         
@@ -177,8 +187,6 @@ def First_step():
           
         else:
             send_results.put(status=status,Actf=action_checker)
-            
-        frame_count += 1
           
   except (KeyboardInterrupt,IOError,OSError):
     pass
@@ -187,6 +195,8 @@ def First_step():
     send_results.close()
     conn[0].close()
     conn[1].close()
+    if bool(transport):
+        transport.close()
     
 
   

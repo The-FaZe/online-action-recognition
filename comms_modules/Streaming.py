@@ -1,12 +1,14 @@
 from . import Network, Segmentation
 import multiprocessing as mp
-from time import time
+from time import time,sleep
 import threading
 from cv2 import cvtColor,COLOR_BGR2RGB
 from socket import socket
 from struct import pack,unpack,calcsize
 
 class rcv_frames_thread(threading.Thread):
+
+
     def __init__(self,connection=socket()
         ,status=True,w_max=30):
         
@@ -17,6 +19,10 @@ class rcv_frames_thread(threading.Thread):
         self.key  = True
 
         self.status = status
+
+        self.active_reset = False
+
+        self.cond = threading.Condition()
 
         threading.Thread.__init__(self)
 
@@ -34,12 +40,25 @@ class rcv_frames_thread(threading.Thread):
             # The loop to receive frames from the connection
             #self.key is a flag to be used by the main process to break the loop and terminate the parallel process
             while (self.key):
+
                 x = time() # start recording the time of receiving each frame 
-                frame_,msglen = Network.recv_frame(self.connection) # receiving a frame 
+
+
+                frame_,msglen = Network.recv_frame(self.connection) # receiving a frame
+
                 msglen_sum += msglen # updating the size of the total frames received
-                
+
+                if (msglen is 0):
+
+                    self.active_reset = True
+                    
+                    self.frames.reset()
+                    self.WaitConfirmReset()
+                    self.frames.confirm()
+
+                else:
                 #adding the (frame received,the size of the frame and the total time it took to receive it) in the shared memory buffer
-                self.frames.put([frame_,msglen,time()-x]) 
+                    self.frames.put([frame_,msglen,time()-x]) 
 
         #breaking the connection and terminating the process if there is an error , interruption or connection break 
         except ( KeyboardInterrupt,IOError,OSError)as e:
@@ -48,26 +67,54 @@ class rcv_frames_thread(threading.Thread):
         finally:
             print('The secound process is terminated \n',   #calculating and printing the average speed of the connection 
                   'The total average Rate is ',msglen_sum/((time()-y)*1000),'KB/s')
+
             self.connection.close() #closing the connection if the for loop is broken
+
             self.frames.close() #declaring that there is no data will be added to the queue from this process
         return
 
+    def ConfirmReset(self):
+        with self.cond:
+
+            self.active_reset = False
+
+            self.cond.notify()
+
+        self.connection.sendall(b'\xff')
+
+
+    def WaitConfirmReset(self):
+        with self.cond:
+                while self.active_reset:
+                    self.cond.wait()
+
+    def CheckReset(self):
+        with self.cond:
+            return self.active_reset
 
 
     #The method is responsible for consuming data from the queue ,decoding it
     # printing status on it and converting it into RGB if desired 
     def get(self,rgb=True):
-        frame_ = self.frames.get() #blocking until getting the data with time out of 60 s 
-        if frame_ is 0:
-            return 0,()
-        frame_ , msglen , spf = frame_
-        frame_ = Network.decode_frame(frame_) #decoding the frames
-        if rgb:
-            frame_ = cvtColor(frame_, COLOR_BGR2RGB)    # Converting from BGR to RGB
-        [msglen_rate,spf] = self.m.mean([msglen,spf])
-        status = (1/spf,msglen_rate/(spf*1000))        
+        if self.CheckReset():
+            return None,None
+        else:
+            frame_ = self.frames.get() #blocking until getting the data with time out of 60 s 
+            if frame_ is 0:
+                return 0,()
+            if frame_ is None:
+                print(self.CheckReset())
+                if self.CheckReset():
+                    return None,None
+            frame_ , msglen , spf = frame_
+            frame_ = Network.decode_frame(frame_) #decoding the frames
+            if rgb:
+                frame_ = cvtColor(frame_, COLOR_BGR2RGB)    # Converting from BGR to RGB
+            [msglen_rate,spf] = self.m.mean([msglen,spf])
+            status = (1/spf,msglen_rate/(spf*1000))        
+            return frame_ ,status                                # Returning the frame as an output
 
-        return frame_ ,status                                #Returning the frame as an output
+
 
     # The method is responsible for Quiting the program swiftly with no daemon process
     # the method is to be using in the main process code 
@@ -78,30 +125,44 @@ class rcv_frames_thread(threading.Thread):
         print('The program has been terminated ')
 
 
+
+
 class send_frames_thread(threading.Thread):
-    def __init__(self,connection=socket()):
+    def __init__(self,connection=socket(),reset_threshold=60,encode_quality=90):
         self.key = True
         self.frames = Segmentation.thrQueue()
         self.connection = connection
+        self.encode_quality=encode_quality
+        self.reset_threshold=reset_threshold
+        self.active_reset = False
         threading.Thread.__init__(self)
         self.start()
 
     def run(self):
         try:
             while (self.key):
-
-                Network.send_frame(self.connection,self.frames.get())
+                if self.frames.qsize() >= self.reset_threshold:
+                    self.active_reset = True
+                    self.frames.reset()
+                    Network.send_frame(connection=self.connection,img=None,Quality=self.encode_quality,active_reset=self.active_reset)
+                    self.frames.confirm()
+                else:
+                    self.active_reset = False 
+                    Network.send_frame(connection=self.connection,img=self.frames.get(),Quality=self.encode_quality,active_reset=self.active_reset)
 
         except(KeyboardInterrupt,IOError,OSError) as e:
             pass
 
         finally:
-            self.frames.close()
             self.connection.close()
             print('sending Frames is stopped')
 
     def put(self,frame):
-        self.frames.put(frame)
+        if not self.active_reset:
+            self.frames.put(frame)
+
+    def Actreset(self):
+        return self.active_reset
 
     def close(self):
         self.key = False # breaking the while loop of it's still on in the parallel process(run)
@@ -134,10 +195,12 @@ class send_results_thread(threading.Thread):
                     self.connection.sendall(flagb)
                     results_ = pack(self.fmb[flag],*result[0])
                     self.connection.sendall(results_)
+                    #print(self.results.qsize())
                 elif result[1]:
                     flag = flag | 0x80
                     flagb = pack(">B", flag)
                     self.connection.sendall(flagb)
+                    #print(self.results.qsize())
                 else:
                     pass
         except(KeyboardInterrupt,IOError,OSError) as e:
@@ -147,6 +210,10 @@ class send_results_thread(threading.Thread):
             self.connection.close()
             self.results.close()
             print('sending results is stopped')
+
+    def reset(self):
+        results.reset()
+        self.confirm()
 
     def put(self,status=(),scores=(),Actf=False):
         self.results.put([status + (scores*(Actf|self.test)) ,bool(not(Actf))])
@@ -199,6 +266,7 @@ class rcv_results_thread(threading.Thread):
                     with self.cond:
                         self.NoActf = NoActf
                         self.test = test
+                        self.count -= 1
 
 
         except(KeyboardInterrupt,IOError,OSError) as e:
@@ -229,6 +297,10 @@ class rcv_results_thread(threading.Thread):
     def add(self):
         with self.cond:
             self.count += 1
+    
+    def reset(self):
+        with self.cond:
+            self.count = 0
 
     def get(self):
         with self.cond:

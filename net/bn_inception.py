@@ -14,7 +14,7 @@ https://github.com/dichotomies/proxy-nca.
 def bn_inception(pretrained=False,**kwargs):
     model = BNInception(**kwargs)
     if pretrained:
-        model.load_state_dict(torch.utils.model_zoo.load_url('http://data.lip6.fr/cadene/pretrainedmodels/bn_inception-52deb4733.pth'))
+        model.load_state_dict(torch.load(r'net/bn_inception_weights_pt04.pt'))
     return model
 
 class BNInception(nn.Module):

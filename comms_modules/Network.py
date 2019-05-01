@@ -8,42 +8,28 @@ from threading import Thread
 import subprocess as sp
 
 
-# A method to perfrom tunneling in the cmd on the HPC end
-def tunneling_cmd_hpc_server(port):
-    s = "localhost:"+port+":localhost:"+port
-    s=sp.run(["ssh","-R",s,"login01","-N"])
-
-def tunneling_cmd_hpc_client(port):
-    port = str(port)
-    s = "localhost:"+port+":localhost:"+port
-    s = sp.run(["ssh","-L",s,"alex039u4@hpc.bibalex.org","-N"])
-
-# A method to perform the tunneling and pick the port to work on .
-def ssh_tun():
+def tunneling_cmd_hpc_server(user,path,local_port):
     port = sp.run(["shuf","-i8000-9999","-n1"],capture_output=True)
     port =port.stdout.strip().decode()
-    T =Thread(target=tunneling_cmd_hpc_server,args=(port,))
-    T.start()
-    print("port:",port)
-    s="ssh -L localhost:"+port+":localhost:"+port+" alex039u4@hpc.bibalex.org -N "
-    print("copy the following command \n",s)
-    return int(port),T
-
-
-
-# A method to set the host of the connection(initialization) but u have to specify the port if the tunneling isn't used
-# the connection is TCP/IP - the ip of the server is the ip of the host locally
-# n is the number of parallel connections to the server is (default is 1)
-def set_server(port=None,Tunnel=True,n=2):
-    if Tunnel:
-        port,T = ssh_tun()
+    s = "localhost:"+port+":localhost:"+port
+    tun_sp=sp.run(["ssh","-R",s,"login01","-N","-f"])
+    if path is None:
+        s="ssh -L {}:localhost:{} {}@login01.c2.hpc.bibalex.org -N".format(local_port,port,user)
     else:
-        T = None
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)    #specifying socket type is IPV4"socket.AF_INET" and TCP "SOCK_STREAM"
+        s="ssh -L {}:localhost:{} {}@login01.c2.hpc.bibalex.org -N -i {}".format(local_port,port,user,path)
+    print("copy the following command \n",s)
+    return int(port),tun_sp
+
+
+
+def set_server(port,n,Tunnel,user,path):
     if Tunnel:
         ip = "localhost"
+        port,s=tunneling_cmd_hpc_server(user=user,path=path,local_port=port) 
     else:
         ip =socket.gethostbyname(socket.gethostname())              # Getting the local ip of the server
+        s = None
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)    #specifying socket type is IPV4"socket.AF_INET" and TCP "SOCK_STREAM"
     server_address = (ip,port)      # saving ip and port as tuple
     sock.bind(server_address)       # attaching the socket to the pc (code)
     print ('starting up on',server_address[0],':',server_address[1])
@@ -54,7 +40,8 @@ def set_server(port=None,Tunnel=True,n=2):
     connection2, client_address = sock.accept() #accepting that client and hosting a connection with him
     print('client_address is ',client_address[0],client_address[1])
     connection = (connection,connection2)
-    return connection,T  #returning the connection object for further use
+    return connection,s  #returning the connection object for further use
+
 
 
 

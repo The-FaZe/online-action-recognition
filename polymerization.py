@@ -27,10 +27,7 @@ parser.add_argument('weights', nargs='+', type=str,
 parser.add_argument('--arch', type=str, default="BNInception")
 parser.add_argument('--test_segments', type=int, default=25)
 parser.add_argument('--window_size', type=int, default=2)
-parser.add_argument('--test_crops', type=int, default=1)
 parser.add_argument('--input_size', type=int, default=224)
-parser.add_argument('--crop_fusion_type', type=str, default='avg',
-                    choices=['avg', 'max', 'topk'])
 parser.add_argument('--k', type=int, default=3)
 parser.add_argument('--dropout', type=float, default=0.7)
 parser.add_argument('--classInd_file', type=str, default='')
@@ -56,7 +53,6 @@ pre_scoresRGBDiff = torch.zeros((3,101)).cuda()
 def First_step():
   #num_crop = args.test_crops  
   test_segments = args.test_segments
-  num_crop = args.test_crops
   window_size = args.window_size
   
   #this function do forward propagation and returns scores
@@ -82,13 +78,14 @@ def First_step():
               output = torch.cat((pre_scoresRGBDiff, model_RGBDiff(input)))
               pre_scoresRGBDiff = output.data[-window_size:,]
       
-          output_np = output.data.cpu().numpy().copy()    
+          #output_np = output.data.cpu().numpy().copy()    
           #Reshape numpy array to (num_crop,num_segments,num_classes)
-          output_np = output_np.reshape((num_crop, test_segments*2, num_class))
+          #output_np = output_np.reshape((num_crop, test_segments*2, num_class))
           #Take mean of cropped images to be in shape (num_segments,1,num_classes)
-          output_np = output_np.mean(axis=0).reshape((test_segments*2,1,num_class))
-          output_np = output_np.mean(axis=0)
-      return output_np      
+          #output_np = output_np.mean(axis=0).reshape((test_segments*2,1,num_class))
+          #output_np = output_np.mean(axis=0)
+		  output_tensor = output.data.mean(dim = 0)
+      return output_tensor      
   
 
   if args.dataset == 'ucf101':
@@ -174,13 +171,12 @@ def First_step():
       
         if len(frames) == test_segments*6:       
             frames = transform(frames).cuda()
-            scores_RGB = eval_video(frames[0:len(frames):6], 'RGB')   
+            scores_RGB = eval_video(frames[0:len(frames):6], 'RGB')
             scores_RGBDiff = eval_video(frames[:], 'RGBDiff')
          
             final_scores = args.score_weights[0]*scores_RGB + args.score_weights[1] * scores_RGBDiff
-            #final_scores = softmax(torch.FloatTensor(final_scores))
-            #final_scores = final_scores.data.cpu().numpy().copy()
-            #five_scores = np.argsort(final_scores)[0][::-1][:5]
+            final_scores = softmax(final_scores)
+            final_scores = final_scores.data.cpu().numpy().copy()
             top5_actions.import_scores(final_scores[0,])
             indices_TopN,_,scores_TopN = top5_actions.get_top_N_actions()
             action_checker = Evaluation(scores_TopN, args.psi)

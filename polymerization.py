@@ -84,7 +84,7 @@ def First_step():
           #Take mean of cropped images to be in shape (num_segments,1,num_classes)
           #output_np = output_np.mean(axis=0).reshape((test_segments*2,1,num_class))
           #output_np = output_np.mean(axis=0)
-		  output_tensor = output.data.mean(dim = 0)
+          output_tensor = output.data.mean(dim = 0)
       return output_tensor      
   
 

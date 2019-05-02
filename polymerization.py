@@ -177,7 +177,7 @@ def First_step():
             final_scores = args.score_weights[0]*scores_RGB + args.score_weights[1] * scores_RGBDiff
             #final_scores = softmax(final_scores)
             final_scores = final_scores.data.cpu().numpy().copy()
-            top5_actions.import_scores(final_scores[0,])
+            top5_actions.import_scores(final_scores)
             indices_TopN,_,scores_TopN = top5_actions.get_top_N_actions()
             action_checker = Evaluation(scores_TopN, args.psi)
             

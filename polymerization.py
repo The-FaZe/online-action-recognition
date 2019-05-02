@@ -26,6 +26,7 @@ parser.add_argument('weights', nargs='+', type=str,
                     help='1st and 2nd index is RGB and RGBDiff weights respectively')
 parser.add_argument('--arch', type=str, default="BNInception")
 parser.add_argument('--test_segments', type=int, default=25)
+parser.add_argument('--window_size', type=int, default=2)
 parser.add_argument('--test_crops', type=int, default=1)
 parser.add_argument('--input_size', type=int, default=224)
 parser.add_argument('--crop_fusion_type', type=str, default='avg',
@@ -56,6 +57,7 @@ def First_step():
   #num_crop = args.test_crops  
   test_segments = args.test_segments
   num_crop = args.test_crops
+  window_size = args.window_size
   
   #this function do forward propagation and returns scores
   def eval_video(data, model):
@@ -73,12 +75,12 @@ def First_step():
           if model == 'RGB':
               input = data.view(-1, 3, data.size(1), data.size(2))
               output = torch.cat((pre_scoresRGB, model_RGB(input)))
-              pre_scoresRGB = output.data[-3:,]
+              pre_scoresRGB = output.data[-window_size:,]
 
           elif model == 'RGBDiff':
               input = data.view(-1, 18, data.size(1), data.size(2))
               output = torch.cat((pre_scoresRGBDiff, model_RGBDiff(input)))
-              pre_scoresRGBDiff = output.data[-3:,]
+              pre_scoresRGBDiff = output.data[-window_size:,]
       
           output_np = output.data.cpu().numpy().copy()    
           #Reshape numpy array to (num_crop,num_segments,num_classes)

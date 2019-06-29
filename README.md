@@ -7,7 +7,7 @@ Online recognition means that we receive stream of frames from a camera and dete
 Our system is composed of many parts, and is mainly built on top of Temporal Segment Networks.
 
 Temporal Segment Networks for Action Recognition in Videos, Limin Wang, Yuanjun Xiong, Zhe Wang, Yu Qiao, Dahua Lin, Xiaoou Tang, and Luc Van Gool, TPAMI, 2018.
-[Arxiv Preprint]
+[[Arxiv Preprint](https://arxiv.org/abs/1705.02953)]
 
 # Prerequisites
 

@@ -76,44 +76,64 @@ This should take a while. You can now see the dataset files are ready in the Fil
 
 To train our model, use main.py script by running the following:
 
-For RGB model:
+For RGB stream:
 ```
 %%shell
 
 python3 /content/real-time-action-recognition/main.py ucf101 RGB \
-  /content/real-time-action-recognition/UCF_lists/rgb_train_FileList1.txt \
-  /content/real-time-action-recognition/UCF_lists/rgb_test_FileList1.txt \
+<ucf101_rgb_train_list> <ucf101_rgb_val_list> \
    --arch  BNInception --num_segments 3 \
    --gd 20 --lr 0.001 --lr_steps 30 60 --epochs 80 \
-   -b 32 -j 2 --dropout 0.8 \
-   --snapshot_pref ucf101_bninception_RGB
+   -b 128 -j 8 --dropout 0.8 \
+   --snapshot_pref <weights_file_name>
 ```
 
 Hyperparameters tuning was done by the authors of TSN paper and we did a little bit of modifications to suit our GPU capacity. 
 You can find what each symbol stands for in the scripting file "parser_commands.py".
 
-For RGB Difference model:
+For RGB Difference stream:
 ```
 %%shell
 
 python3 /content/real-time-action-recognition/main.py ucf101 RGBDiff \
-  /content/real-time-action-recognition/UCF_lists/rgb_train_FileList1.txt \
-  /content/real-time-action-recognition/UCF_lists/rgb_test_FileList1.txt \
+<ucf101_rgb_train_list> <ucf101_rgb_val_list> \
   --arch  BNInception --num_segments 3 \
   --gd 40 --lr 0.001 --lr_steps 80 160 --epochs 180 \
   -b 128 -j 8 --dropout 0.8 \
   --gpus 0 1 \
-  --KinWeights ~/data/tsn_paper/server_scripts/faze_training/RGB_diff/kinetics_tsn_flow.pth.tar \
-  --snapshot_pref ~/data/tsn_paper/server_scripts/faze_training/RGB_diff/UCF101-3seg
+  --KinWeights <kinetics_weights_directory> \
+  --snapshot_pref <weights_file_name>
 ```
 
-b & j should be tuned according to your capacity of GPUs and memory size. 
+Parameters between <...> should be specified by yourself. 
+
+b & j should be tuned according to your capacity of GPUs and memory size. They should be reduced to suit the GPU in Google Colab.
+
+Note: You can fully train the RGB stream but your GPU memory will failt when training on RGB difference stream as you feed the network with 3 times frames of the RGB stream, so you might need two GPUs not only one.
+
 KinWeights refer to the pretrained Kinetcis dataset. In the original work, the model is pretrained on ImageNet dataset to overcome overfitting. Adding Kinetics pretrained weights instead of ImageNet increases accuracy because Kinetics is a large dataset includes 600 different classes for actions.
 
 
 # Testing
 
+RGB stream:
 
+```
+python3 -u test_models.py ucf101 RGB <ucf101_rgb_test_list> <weights_directory> \
+        --arch BNInception --save_scores <score_file_name> \
+        --classInd_file <class_index_file> \
+	      --gpus 0 1 -j 2
+```
+
+RGBDiff Stream:
+```
+python3 -u test_models.py ucf101 RGBDiff <ucf101_rgb_test_list> <weights_directory> \
+   --arch BNInception --save_scores <score_file_name> \
+   --classInd_file <class_index_file> \ 
+   --gpus 0 1 -j 2
+```
+
+If you have only one GPU, you can remove gpus & j parameters.
 
 
 

@@ -9,7 +9,7 @@ Our system is composed of many parts, and is mainly built on top of Temporal Seg
 Temporal Segment Networks for Action Recognition in Videos, Limin Wang, Yuanjun Xiong, Zhe Wang, Yu Qiao, Dahua Lin, Xiaoou Tang, and Luc Van Gool, TPAMI, 2018.
 [[Arxiv Preprint](https://arxiv.org/abs/1705.02953)]
 
-# Prerequisites
+## Prerequisites
 
 * The code is written in Python 3.6 with the Anaconda Python Distribution.
 * GPUs are required for training.
@@ -19,7 +19,7 @@ We trained and tested our model on two Tesla K-80 GPUs (BA-HPC in Bibliotheca Al
 
 We ran and debugged all our codes on Google Colab, and once the model is ready for training, we switched to BA_HPC.
 
-# Steps to get the model ready for training (Google Colab)
+## Steps to get the model ready for training (Google Colab)
 
 1. Change Runtime type to choose GPU.
 2. Check if the GPU is operating by running the following command:
@@ -72,7 +72,7 @@ This should take a while. You can now see the dataset files are ready in the Fil
 !git clone https://github.com/The-FaZe/real-time-action-recognition.git
 ```
 
-# Training
+## Training
 
 To train our model, use main.py script by running the following:
 
@@ -114,7 +114,7 @@ Note: You can fully train the RGB stream but your GPU memory will failt when tra
 KinWeights refer to the pretrained Kinetcis dataset. In the original work, the model is pretrained on ImageNet dataset to overcome overfitting. Adding Kinetics pretrained weights instead of ImageNet increases accuracy because Kinetics is a large dataset includes 600 different classes for actions.
 
 
-# Testing
+## Testing
 
 RGB stream:
 

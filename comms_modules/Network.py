@@ -1,6 +1,6 @@
 import socket
 from time import time,sleep
-import cv2
+from cv2 import imdecode
 from struct import unpack,pack
 import numpy as np
 import multiprocessing as mp
@@ -11,6 +11,9 @@ from paramiko.ssh_exception import *
 
 
 def tunneling_cmd_hpc_server(user,path,local_port):
+    """
+    Early implementation of tunneling using CMD
+    """
     port = sp.run(["shuf","-i8000-9999","-n1"],capture_output=True)
     port =port.stdout.strip().decode()
     s = "localhost:"+port+":localhost:"+port
@@ -25,6 +28,12 @@ def tunneling_cmd_hpc_server(user,path,local_port):
 
 
 def set_server(ip,port,n_conn,Tunnel,hostname=None,username=None):
+    """
+    this method is responsible for establishing a server(listnening for connection) 
+    In a direct LAN enviroment if Tunnel was False; hostname isn't needed
+    n_conn is the awaited number of connections to be established
+    Hostname is needed it Tunnel was activated  
+    """
     connection = []
     transport = None
     if Tunnel:
@@ -93,10 +102,14 @@ def set_server(ip,port,n_conn,Tunnel,hostname=None,username=None):
 
 
 
-# A method to set the client part to set up the connection
-# (Ip is the ip of the server we want to connection with)
-# Port is the port that the server is listening on
 def set_client(ip,port,numb_conn,Tunnel,hostname=None,username=None,Key_path=None,passphrase=None):
+    """
+    this method is responsible for establishing a connection to a server (Ip and port of the server needed to be specified)
+    In a direct LAN enviroment if Tunnel was Fale (hostname,username,keypath,passphrase) aren't needed;
+    connection thought SSH tunneling if tunnel was True 
+    Hostname and username needed to be specified 
+    keypath and pass phrase needed to be specified if there isn't an ssh agent otherwise it isn't needed.
+    """
     client = []
     transport = None
     if Tunnel:
@@ -117,14 +130,13 @@ def set_client(ip,port,numb_conn,Tunnel,hostname=None,username=None,Key_path=Non
         try:
             for i in range(numb_conn):
                 client.append(transport.open_channel(kind='direct-tcpip',src_addr=server_address,dest_addr=server_address))
-                client[i].setblocking(True)
         except SSHException as e:
             print("problem Has been faced trying to make direct-tcpip conneciton")
             raise e
             for i in client:
                 i.close()
             sshclient.get_transport().close()
-            return None,None
+            raise(KeyboardInterrupt)
         except(KeyboardInterrupt):
             for i in client:
                 i.close()
@@ -135,25 +147,28 @@ def set_client(ip,port,numb_conn,Tunnel,hostname=None,username=None,Key_path=Non
         try :
             for i in range(numb_conn):
                 client.append(socket.socket(socket.AF_INET, socket.SOCK_STREAM))
-                client[i].setblocking(True)
                 client[i].connect(server_address)
         except(OSError):
             print("The connection #{} failed".format(i+1))
             print("The process is stopping")
-            return None,None
+            raise(KeyboardInterrupt)
         except(KeyboardInterrupt):
             for i in client:
                 i.close()
-            sshclient.get_transport().close()
             return None,None
 
     return client,transport #returning the connection object for further use
 
 
-# A method to receive any kind of hex file knewing its size (msglen)
-# the receiving is done on the both end (client and server) (TCP connection is full duplex communication )
-# the connection of the receiving end must be assigned and the max buffer len
+
 def recv_msg(connection,msglen,bufferlen):
+    """
+    A method responsible for the complete recieve of a TCP segment
+    the inputs are the socket connection .
+    msglen the length of the awaited packet 
+    The maximum length of a packet
+    and returns the received msg
+    """
     try:
         rcvdlen = 0#the total size of the received packets for the file 
         msg = [];# allocating a None list for the packets to concatenate onto
@@ -177,11 +192,13 @@ def recv_msg(connection,msglen,bufferlen):
 
 
 
-# A method to send frame from either end of the communication with specifying the connection object
-# the img input is a pure image without any encoding
-# the encoding used here is JPEG then getting the size of the encoded image
-# Then sending the size of the image in 4 bytes-size-msg then sending the actual encoded img afterwards
-def send_frame(connection,img,Quality=90,active_reset=False):
+def send_frame(connection,img,active_reset=False):
+    '''
+    This is a method to send a whole img Through TCP connection socket 
+    Connection is the upstream socket 
+    img is the the frame or the data (payload) to be send 
+    and active reset is reset activation flag activated if true
+    '''
     if active_reset :
         buff = pack('>L',0)
         connection.sendall(buff)
@@ -191,21 +208,26 @@ def send_frame(connection,img,Quality=90,active_reset=False):
             raise OSError
 
     else:
-        encode_param=[int(cv2.IMWRITE_JPEG_QUALITY),Quality] # object of the parameters of the encoding (JPEG with 90% quality) 
-        _ ,enc_img = cv2.imencode('.jpg',img,encode_param) # encoding the img in JPEG with specified quality 
-        buff = len(enc_img) # Getting the len of the encoded image  
-        if buff is 0:
+        if img is 0:
+            return
+        buff_d = len(img) # Getting the len of the encoded image
+        if buff_d is 0:
             print("the frame is empty") 
-            raise OSError
-        buff = pack('>L',buff) #converting the size into 4 bytes(struct) length msg ,(L means unsigned long),(> means big endian)
-        enc_img1 = enc_img.tostring() #converting the encoded image array into bytes(struct) of the actual memory
+            raise OSError 
+        buff = pack('>L',buff_d) #converting the size into 4 bytes(struct) length msg ,(L means unsigned long),(> means big endian)
+        img = img.tostring()   #converting the encoded image array into bytes(struct) of the actual memory
         connection.sendall(buff) #sending the size of the frame(img)
-        connection.sendall(enc_img1)#sending the actual img 
+        connection.sendall(img)  #sending the actual img 
+        return buff_d
 
 
-# A method to recieved a frame from either side of the connection
-# connecion is the socket object of the connection from either side(receiving end)
+
 def recv_frame(connection):
+    '''
+    This is a method to receive a whole img Through TCP connection socket 
+    Connection is the downstream socket 
+    and output the stream data and its length
+    '''
     msglen = recv_msg(connection,4,4) # sending the lenght of the enc
     msglen = unpack(">L", msglen)[0] #converting the size again into an unsigned Long 
 
@@ -218,8 +240,8 @@ def recv_frame(connection):
     return frame,msglen # returning the frame as bytes and its length
 
 
-# Converting the frame from bytes(struct) into array then decoding it 
 def decode_frame(frame):
+
     frame = np.frombuffer(frame,dtype='uint8') # converting the frame into an array again  
-    frame = cv2.imdecode(frame,1) # decoding the frame into raw img
+    frame = imdecode(frame,1) # decoding the frame into raw img
     return frame #returning the decoded frame

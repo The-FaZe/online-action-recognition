@@ -8,7 +8,7 @@ Created on Mon Mar 11 00:17:31 2019
 
 import numpy as np
 import cv2
-
+from . import Segmentation
 
 class Top_N(object):
     
@@ -78,18 +78,17 @@ class Top_N(object):
         except:
             pass
                 
-        sorted_indcies = np.argsort(self.scores)[::-1] #soring the indicies from 
-                                                       #the biggesr to the loewst
+        sorted_indcies = np.argsort(self.scores)[::-1] #sorting the indicies from 
+                                                       #the biggest to the lowest
                                                        
         
-        sorted_indcies = sorted_indcies[:self.N]     #taking top N actioms
+        sorted_indcies = sorted_indcies[:self.N]     #taking top N actions
         
         top_N_actions = []
         top_N_scores  = []
         for i in sorted_indcies:
             top_N_actions.append(self.actions_list[i])
             top_N_scores.append(self.scores[i])
-        
         self.top_N_scores = top_N_scores
         self.top_N_actions = top_N_actions
         self.indecies = sorted_indcies
@@ -109,15 +108,37 @@ class Top_N(object):
         
 
 
-    def add_scores(self,frame_,x=460,y=380,j=20,font = cv2.FONT_HERSHEY_SIMPLEX
-        ,fontScale = 0.4,fontcolor=(255,255,255),lineType=1):
-        c = 0
-        for i in self.indecies:
-                l = j*c
-                s = self.actions_list[i]+' : '+"{0:.4f}".format(self.top_N_scores[c])
-                cv2.putText(frame_,s, (x,y+l) 
-                    ,font, fontScale, fontcolor, lineType)
-                c +=1
+    def add_scores(self,frame_,x=460,y=470,font = cv2.FONT_HERSHEY_SIMPLEX
+        ,fontScale = 0.4,fontcolor=(255,255,255),lineType=1,thickness=1,final_action_f=False
+        ,box_flag=False,alpha = 0.4,boxcolor=(129, 129, 129),more_width=0,x_mode=None):
+        c =0
+        if x_mode is 'center':
+            x=frame_.shape[1]//2
+        elif x_mode is 'left':
+            x=frame_.shape[1]
+        if final_action_f:
+            indecies = self.indecies[0]
+            origin = np.array([x,y])
+            s=self.actions_list[indecies]
+            Segmentation.add_box(frame=frame_ ,text=s ,origin=origin, font=font, fontScale=fontScale
+                ,thickness=thickness ,alpha=alpha ,enable=box_flag,color=boxcolor,x_mode=x_mode)
+
+            cv2.putText(frame_,s, tuple(origin) 
+                ,font, fontScale, fontcolor, lineType,thickness)
+
+        else:
+            indecies = self.indecies[::-1]
+            top_N_scores=self.top_N_scores[::-1]
+            l=0
+            for i in indecies:
+                    s = self.actions_list[i]+' : '+"{0:.4f}".format(top_N_scores[c])
+                    origin = np.array([x,y+l])
+                    height=Segmentation.add_box(frame=frame_ ,text=s ,origin=origin, font=font, fontScale=fontScale
+                        ,thickness=thickness ,alpha=alpha ,enable=box_flag,color=boxcolor,x_mode=x_mode)
+                    l -=height
+                    cv2.putText(frame_,s, tuple(origin)
+                        ,font, fontScale, fontcolor, lineType,thickness)
+                    c +=1
 
                 
     def index_to_actionString(self):

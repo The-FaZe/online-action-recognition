@@ -2,12 +2,17 @@ from . import Network, Segmentation
 import multiprocessing as mp
 from time import time,sleep
 import threading
-from cv2 import cvtColor,COLOR_BGR2RGB
+from cv2 import cvtColor,COLOR_BGR2RGB,IMWRITE_JPEG_QUALITY,imencode
 from socket import socket
 from struct import pack,unpack,calcsize
 
 class rcv_frames_thread(threading.Thread):
-
+    """
+    Class repsonsible for generating a thread responsible for receiving frames 
+    the downstream connection socket is passed to it 
+    the maximum window for calculating the average speed(mean)
+    Status flag
+    """
 
     def __init__(self,connection=socket()
         ,status=True,w_max=30):
@@ -22,7 +27,7 @@ class rcv_frames_thread(threading.Thread):
 
         self.active_reset = False
 
-        self.cond = threading.Condition()
+        self.cond = threading.Condition(threading.Lock())
 
         threading.Thread.__init__(self)
 
@@ -34,6 +39,10 @@ class rcv_frames_thread(threading.Thread):
 
 
     def run(self):
+        """
+        a method runs on a parallel thread when calling this class
+        reponsible for listening and capturing the stream of data on the connection and buffer it into the queue for consuming
+        """
         try:
             msglen_sum = 0 #the size of total frames received 
             y = time() #Total time of the receiving
@@ -74,6 +83,9 @@ class rcv_frames_thread(threading.Thread):
         return
 
     def ConfirmReset(self):
+        """
+        a method to confirm that all procedure for reset has been done and it's ready for reactivation 
+        """
         with self.cond:
 
             self.active_reset = False
@@ -84,18 +96,29 @@ class rcv_frames_thread(threading.Thread):
 
 
     def WaitConfirmReset(self):
+        """
+        a method to block the parallel thread untill the confimation is received for reactivation
+        """
         with self.cond:
                 while self.active_reset:
                     self.cond.wait()
 
     def CheckReset(self):
+        """
+        a method to check the reset conditions contineously
+        """
         with self.cond:
-            return self.active_reset
+            ar =  self.active_reset
+        return ar
 
 
     #The method is responsible for consuming data from the queue ,decoding it
     # printing status on it and converting it into RGB if desired 
     def get(self,rgb=True):
+        """
+        The method is responsible for consuming data from the queue ,decoding it
+        printing status on it and converting it into RGB if desired using rgb flag
+        """
         if self.CheckReset():
             return None,None
         else:
@@ -119,6 +142,9 @@ class rcv_frames_thread(threading.Thread):
     # The method is responsible for Quiting the program swiftly with no daemon process
     # the method is to be using in the main process code 
     def close(self):
+        '''
+        this method responsible for terminating the thread
+        '''
         self.key = False # breaking the while loop of it's still on in the parallel process(run)
         self.frames.close() # declaring there is no frames will be put on the shared queue from the main process
         self.join() # waiting for the parallel process to terminate
@@ -128,27 +154,49 @@ class rcv_frames_thread(threading.Thread):
 
 
 class send_frames_thread(threading.Thread):
-    def __init__(self,connection=socket(),reset_threshold=60,encode_quality=90):
+    """
+    a class responsible for generating a thread to send frames across the TCP socket connection
+    takes in the upstream socket connection 
+    The reset threshold it will reset the connection after accumilating to this threshold
+    encoding quality of the frames
+    """
+    def __init__(self,connection=socket(),reset_threshold=60,encode_quality=90,w_max=30):
         self.key = True
         self.frames = Segmentation.thrQueue()
         self.connection = connection
         self.encode_quality=encode_quality
         self.reset_threshold=reset_threshold
         self.active_reset = False
+        self.cond_ = threading.RLock()
+        self.latest_spotted_time_measerand = [False,None]
+        self.encode_param=[int(IMWRITE_JPEG_QUALITY),encode_quality] # object of the parameters of the encoding (JPEG with 90% quality) 
+        if self.status:  # If the flag is true then initialize the mean object 
+            self.m = Segmentation.mean(w_max)
         threading.Thread.__init__(self)
         self.start()
 
     def run(self):
+        """
+        a method run on a new thread to consume the queued frames adding headers and sending it through TCP connection
+        """
         try:
             while (self.key):
                 if self.frames.qsize() >= self.reset_threshold:
                     self.active_reset = True
                     self.frames.reset()
-                    Network.send_frame(connection=self.connection,img=None,Quality=self.encode_quality,active_reset=self.active_reset)
+                    Network.send_frame(connection=self.connection,img=None,active_reset=self.active_reset)
                     self.frames.confirm()
                 else:
                     self.active_reset = False 
-                    Network.send_frame(connection=self.connection,img=self.frames.get(),Quality=self.encode_quality,active_reset=self.active_reset)
+                    x = time()
+                    with self.cond_:
+                        self.latest_spotted_time_measerand=[True,x]
+                    msglen=Network.send_frame(connection=self.connection,img=self.frames.get(),active_reset=self.active_reset)
+                    with self.cond_:
+                        t=time()-x
+                        self.m.mean([msglen,t])
+                        self.latest_spotted_time_measerand[0]=False
+
 
         except(KeyboardInterrupt,IOError,OSError) as e:
             pass
@@ -158,24 +206,51 @@ class send_frames_thread(threading.Thread):
             print('sending Frames is stopped')
 
     def put(self,frame):
+        """
+        putting data in a queue to be consumed by the new thread and send in order .
+        """
         if not self.active_reset:
+            _ ,frame = imencode('.jpg',frame,self.encode_param) # encoding the img in JPEG with specified quality 
             self.frames.put(frame)
 
     def Actreset(self):
+        """
+        method responsible for checking the reset condition (for ease use)
+        """
         return self.active_reset
 
     def close(self):
+        """
+        to terminate the thread swiftly
+        """
         self.key = False # breaking the while loop of it's still on in the parallel process(run)
         self.frames.close() # declaring there is no frames will be put on the shared queue from the main process
         self.join() # waiting for the parallel process to terminate
 
+    def status(self):
+        with self.cond_:
+            if self.latest_spotted_time_measerand[0]:
+                t=time()-self.latest_spotted_time_measerand[1]
+                out=self.m.mean_temp([0,t])
+            else :
+                out=self.m.mean.out
+        return (1/out[1],out[0]/(out[1]*1000)) 
+
 
 class send_results_thread(threading.Thread):
+    """
+    this class is responsible for generating a thread to send frames through the socket connection contineously
+
+    Number of wanted top scores 
+    number of assignet status to be send 
+    and the test flag
+    """
     def __init__(self,connection=socket(),nmb_scores=5,nmb_status=2,test=False):
+
         self.key_ = True
         self.results = Segmentation.thrQueue()
         self.connection = connection
-        self.check = (nmb_status,2*nmb_scores,2*nmb_scores+nmb_status)
+        self.check = (nmb_status,2*nmb_scores,2*nmb_scores+nmb_status,None)
         self.fmb = (">{}f".format(nmb_status)
             ,">{}B{}f".format(nmb_scores,nmb_scores)
             ,">{}f{}B{}f".format(nmb_status,nmb_scores,nmb_scores),None)
@@ -184,6 +259,10 @@ class send_results_thread(threading.Thread):
         self.start()
 
     def run(self):
+        """
+        the generated thread that sends the data as soon as available
+        and adding headers of the application layer
+        """
         try:
             while (self.key_):
                 result = self.results.get()
@@ -196,13 +275,12 @@ class send_results_thread(threading.Thread):
                     results_ = pack(self.fmb[flag],*result[0])
                     self.connection.sendall(results_)
                     #print(self.results.qsize())
-                elif result[1]:
-                    flag = flag | 0x80
+                else:
+                    flag = self.check.index(None)
+                    flag = flag | (0x80*result[1])
                     flagb = pack(">B", flag)
                     self.connection.sendall(flagb)
                     #print(self.results.qsize())
-                else:
-                    pass
         except(KeyboardInterrupt,IOError,OSError) as e:
             pass
 
@@ -212,13 +290,22 @@ class send_results_thread(threading.Thread):
             print('sending results is stopped')
 
     def reset(self):
+        '''
+        reseting the queue
+        '''
         results.reset()
         self.confirm()
 
     def put(self,status=(),scores=(),Actf=False):
-        self.results.put([status + (scores*(Actf|self.test)) ,bool(not(Actf))])
+        """
+        putting results into the queue
+        """
+        self.results.put([status + (scores*(Actf|self.test))*bool(status + (scores*(Actf|self.test))) ,bool(not(Actf))])
 
     def close(self):
+        """
+        terminating the thread 
+        """
         self.key_ = False 
         self.results.close()
         self.join() # waiting for the parallel process to terminate
@@ -227,7 +314,20 @@ class send_results_thread(threading.Thread):
         
 
 class rcv_results_thread(threading.Thread):
+    """
+    this calss is responsible for generating a thread to receive results and getting the most recent results out of the downstream socket connection
+
+    The inputs 
+
+    Number of wanted top scores 
+    number of assignet status to be send 
+
+    the output 
+
+    the resukts 
+    """
     def __init__(self,connection=socket(),nmb_scores=5,nmb_status=2):
+
         self.key_ = True
         self.connection = connection
         self.fmb = (">{}f".format(nmb_status)
@@ -235,7 +335,7 @@ class rcv_results_thread(threading.Thread):
             ,">{}f{}B{}f".format(nmb_status,nmb_scores,nmb_scores),None)
         self.count = 0
         self.result_ = ()
-        self.cond = threading.Condition()
+        self.cond = threading.Condition(threading.Lock())
         self.nmb_scores = nmb_scores
         self.nmb_status = nmb_status
         self.test = False
@@ -250,6 +350,10 @@ class rcv_results_thread(threading.Thread):
 
 
     def run(self):
+        """
+        The parallel thread that listens on the connection
+        and decapsulate the header taking the flags and the information needed.
+        """
         try:
             while (self.key_):
                 flag = Network.recv_msg(self.connection, 1 , 1)
@@ -277,6 +381,9 @@ class rcv_results_thread(threading.Thread):
 
 
     def update(self,result,NoActf,test):
+        """
+        updating to the latest results 
+        """
         with self.cond:
             self.NoActf = NoActf
             self.test = test
@@ -295,24 +402,42 @@ class rcv_results_thread(threading.Thread):
             self.count -= 1
 
     def add(self):
+        """
+        the counter for receiving resutls 
+        """
         with self.cond:
             self.count += 1
     
     def reset(self):
+        """
+        reseting the thread (counter)
+        """
         with self.cond:
             self.count = 0
 
     def get(self):
+        """
+        fetching the latest results
+        """
         with self.cond:
             New_out = self.New_out 
+            count = self.count
+            status = self.status
+            action_index =self.action_index
+            scores = self.scores
+            NoActf = self.NoActf
+            test = self.test
             self.New_out = [False,False] 
-            return self.count,self.status,[self.action_index,self.scores],self.NoActf,self.test,New_out
+        return count,status,[action_index,scores],NoActf,test,New_out
 
 
 
 
 
     def close(self):
+        """
+        terminating the parallel thread
+        """
         self.key_ = False # breaking the while loop of it's still on in the parallel process(run)
         self.join() # waiting for the parallel process to terminate
 

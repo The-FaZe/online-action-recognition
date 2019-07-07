@@ -208,20 +208,22 @@ class Cap_Process(mp.Process):
                             send_frames.put(cv2.resize(frame_,(224,224)))
 
 
-                    count,_,score_,NoActf,test,New_out=rcv_results.get()
-                    status=send_frames.status()
+                    count,status,score_,NoActf,test,New_out=rcv_results.get()
+                    _=send_frames.status()
                     if New_out[1]:
                         initialized = True
                         top5_actions.import_indecies_top_N_scores(score_)
-                    #if New_out[0]:
-                    s3 = "the rate of sending frames is {0:.2f} fps".format(status[0])
-                    s4 = "The rate of sending data is {0:.2f} KB/s".format(status[1])
+                    if New_out[0]:
+                        s3 = "the rate of sending frames is {0:.2f} fps".format(status[0])
+                        s4 = "The rate of sending data is {0:.2f} KB/s".format(status[1])
                     s1 = "UP/Down delay {0:1d} frame".format(int(count))
                     #s2 = "The number of waiting frames in buffer is {0:.2f} frame ".format(self.frames.qsize())
                     s5 = "Buffered frames {0:1d} frame".format(int(send_frames.frames.qsize()))
 
                     s = (s1,s3,s4,s5)
+                    frame_=remove_bounderies1(frame_)
                     frame_=cv2.pyrUp(frame_)
+                    print(frame_.shape)
                     alpha = 0.3
                     font=cv2.FONT_HERSHEY_TRIPLEX
                     y=frame_.shape[0]-15
@@ -326,3 +328,33 @@ def add_box(frame,text,origin,font,color,fontScale=1,thickness=1,alpha=0.4,enabl
         frame[:] = cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0)
     return pt2[1]-pt1[1]+1
 
+
+def remove_bounderies(frame):
+    gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+    _,thresh = cv2.threshold(gray,1,255,cv2.THRESH_BINARY)
+    contours = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+    cnt = contours[0]
+    x,y,w,h = cv2.boundingRect(cnt)
+    print(x,y,w,h)
+    return frame[y:y+h,x:x+w]
+
+def remove_bounderies1(frame):
+    gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+    _,thresh = cv2.threshold(gray,1,255,cv2.THRESH_BINARY)
+    thresh_binary_y_wise = (thresh.sum(1) > 0)
+    r_0=(np.logical_xor(thresh_binary_y_wise[1:],thresh_binary_y_wise[0:-1])).nonzero()[0]
+    r_0=sorted(r_0,reverse=True)
+    if len(r_0) == 0 :
+        return frame
+    location=list(map(lambda x : (not(thresh_binary_y_wise[0:x].sum()),not(thresh_binary_y_wise[x+1:].sum())) , r_0))# (0,1) top border , (1,0) botom border (1,1) pass
+    index_ = np.array(list(map(lambda x,y :(x[0] | x[1])*y , location,r_0))).nonzero()[0]
+
+    for index in index_:
+        #print(location[index])
+        if location[index] == (False,True):
+            frame = frame[0:r_0[index]]
+        elif location[index] == (True,False):
+            frame = frame[r_0[index]:]
+        else:
+            pass
+    return frame

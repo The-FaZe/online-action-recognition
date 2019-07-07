@@ -138,6 +138,7 @@ def First_step():
   softmax = torch.nn.Softmax()
   scores = torch.tensor(np.zeros((1,101)), dtype=torch.float32).cuda()
    
+  action_checker = True
   frames = []  
 
   conn,transport = set_server(ip="0.0.0.0",port=args.port,Tunnel=True,n_conn=2,hostname= args.hostname,username=args.username)

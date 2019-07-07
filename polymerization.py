@@ -25,8 +25,9 @@ parser.add_argument('dataset', type=str, choices=['ucf101', 'hmdb51', 'kinetics'
 parser.add_argument('weights', nargs='+', type=str,
                     help='1st and 2nd index is RGB and RGBDiff weights respectively')
 parser.add_argument('--arch', type=str, default="BNInception")
-parser.add_argument('--test_segments', type=int, default=25)
-parser.add_argument('--window_size', type=int, default=2)
+parser.add_argument('--num_segments', type=int, default=8 ,help='Window size')
+parser.add_argument('--delta', type=int, default=2,help='Value of the shift')
+parser.add_argument('--psi', type=float, default=3.5)
 parser.add_argument('--input_size', type=int, default=224)
 parser.add_argument('--k', type=int, default=3)
 parser.add_argument('--dropout', type=float, default=0.7)
@@ -36,7 +37,6 @@ parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
 parser.add_argument('--gpus', nargs='+', type=int, default=None)
 parser.add_argument('--score_weights', nargs='+', type=float, default=[1,1.5])
-parser.add_argument('--psi', type=float, default=10)
 
 
 parser.add_argument('--test',dest = 'test',action='store_true',help='coloring the output scores with red color in case of NoActivity case')
@@ -46,8 +46,8 @@ parser.add_argument('--u',dest= 'username' , type = str , default = 'alex039u2')
 
 args = parser.parse_args()
 
-pre_scoresRGB = torch.zeros((3,101)).cuda()
-pre_scoresRGBDiff = torch.zeros((3,101)).cuda()
+pre_scoresRGB = torch.zeros((args.num_segments - args.delta,101)).cuda()
+pre_scoresRGBDiff = torch.zeros((args.num_segments - args.delta,101)).cuda()
 
 #this function takes one video at a time and outputs the first 5 scores
 def First_step():
@@ -71,12 +71,12 @@ def First_step():
           if model == 'RGB':
               input = data.view(-1, 3, data.size(1), data.size(2))
               output = torch.cat((pre_scoresRGB, model_RGB(input)))
-              pre_scoresRGB = output.data[-window_size:,]
+              pre_scoresRGB = output.data[-(args.num_segments - args.delta):,]
 
           elif model == 'RGBDiff':
               input = data.view(-1, 18, data.size(1), data.size(2))
               output = torch.cat((pre_scoresRGBDiff, model_RGBDiff(input)))
-              pre_scoresRGBDiff = output.data[-window_size:,]
+              pre_scoresRGBDiff = output.data[-(args.num_segments - args.delta):,]
       
           #output_np = output.data.cpu().numpy().copy()    
           #Reshape numpy array to (num_crop,num_segments,num_classes)
@@ -139,7 +139,6 @@ def First_step():
   scores = torch.tensor(np.zeros((1,101)), dtype=torch.float32).cuda()
    
   frames = []  
-  action_checker=True
 
   conn,transport = set_server(ip="0.0.0.0",port=args.port,Tunnel=True,n_conn=2,hostname= args.hostname,username=args.username)
   if conn is None:
@@ -169,7 +168,7 @@ def First_step():
         
         frames.append(frame)
       
-        if len(frames) == test_segments*6:       
+        if len(frames) == args.delta*6:       
             frames = transform(frames).cuda()
             scores_RGB = eval_video(frames[0:len(frames):6], 'RGB')
             scores_RGBDiff = eval_video(frames[:], 'RGBDiff')

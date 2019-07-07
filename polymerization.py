@@ -181,11 +181,11 @@ def First_step():
             indices_TopN,_,scores_TopN = top5_actions.get_top_N_actions()
             action_checker = Evaluation(scores_TopN, args.psi)
             
-            send_results.put(status=(),scores=(*indices_TopN,*scores_TopN),Actf=action_checker)
+            send_results.put(status=status,scores=(*indices_TopN,*scores_TopN),Actf=action_checker)
             frames = [] 
           
         else:
-            send_results.put(status=(),Actf=action_checker)
+            send_results.put(status=status,Actf=action_checker)
           
   except (KeyboardInterrupt,IOError,OSError):
     pass

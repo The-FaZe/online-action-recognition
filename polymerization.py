@@ -52,8 +52,8 @@ pre_scoresRGBDiff = torch.zeros((args.num_segments - args.delta,101)).cuda()
 #this function takes one video at a time and outputs the first 5 scores
 def First_step():
   #num_crop = args.test_crops  
-  test_segments = args.test_segments
-  window_size = args.window_size
+  num_segments = args.num_segments
+  delta = args.delta
   
   #this function do forward propagation and returns scores
   def eval_video(data, model):

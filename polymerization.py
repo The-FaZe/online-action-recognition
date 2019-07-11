@@ -44,6 +44,7 @@ parser.add_argument('--p',dest= 'port' , type = int , default = 6666)
 parser.add_argument('--h',dest= 'hostname' , type = str , default = 'login01')
 parser.add_argument('--u',dest= 'username' , type = str , default = 'alex039u2')
 
+parser.add_argument('--v',dest = 'vflag',action='store_true')
 args = parser.parse_args()
 
 pre_scoresRGB = torch.zeros((args.num_segments - args.delta,101)).cuda()
@@ -147,7 +148,7 @@ def First_step():
   
   try: 
     top5_actions = Top_N(args.classInd_file)
-    rcv_frames = rcv_frames_thread(connection=conn[0])
+    rcv_frames = rcv_frames_thread(connection=conn[0],vflag=args.vflag)
     send_results = send_results_thread(connection=conn[1],test=args.test)
 
     

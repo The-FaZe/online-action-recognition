@@ -5,6 +5,8 @@ import threading
 from cv2 import cvtColor,COLOR_BGR2RGB,IMWRITE_JPEG_QUALITY,imencode
 from socket import socket
 from struct import pack,unpack,calcsize
+import subprocess as sp 
+import numpy as np
 
 class rcv_frames_thread(threading.Thread):
     """
@@ -15,13 +17,25 @@ class rcv_frames_thread(threading.Thread):
     """
 
     def __init__(self,connection=socket()
-        ,status=True,w_max=30):
+        ,status=True,w_max=30,vflag=False):
         
         self.connection = connection
         
         self.frames = Segmentation.thrQueue()
         
         self.key  = True
+
+        self.vflag = vflag
+
+        self.command2=["ffmpeg",
+                '-f','h264',
+                '-i', '-',
+                '-f', 'rawvideo',
+                '-vcodec','rawvideo',
+                '-pix_fmt', 'bgr24',
+                '-hide_banner',
+                '-'
+                ]
 
         self.status = status
 
@@ -49,10 +63,7 @@ class rcv_frames_thread(threading.Thread):
             # The loop to receive frames from the connection
             #self.key is a flag to be used by the main process to break the loop and terminate the parallel process
             while (self.key):
-
                 x = time() # start recording the time of receiving each frame 
-
-
                 frame_,msglen = Network.recv_frame(self.connection) # receiving a frame
 
                 msglen_sum += msglen # updating the size of the total frames received
@@ -67,7 +78,18 @@ class rcv_frames_thread(threading.Thread):
 
                 else:
                 #adding the (frame received,the size of the frame and the total time it took to receive it) in the shared memory buffer
-                    self.frames.put([frame_,msglen,time()-x]) 
+                    if not self.vflag:
+                        self.frames.put([frame_,msglen,time()-x]) 
+                    else:
+                        proc2 = sp.Popen(self.command2, stdin=sp.PIPE, stderr=sp.PIPE,stdout=sp.PIPE,shell=True,bufsize=10**8)
+                        stdout=proc2.communicate(frame_)[0]
+                        it = len(stdout)//(224*224*3)
+                        print(it)
+                        for i in range(it):
+                            frame_ =  np.frombuffer(stdout[224*224*3*i:224*224*3*(i+1)], dtype='uint8')
+                            frame_=frame_.reshape((224,224,3))
+                            self.frames.put([frame_,msglen/it,time()-x]) 
+                            x = time()
 
         #breaking the connection and terminating the process if there is an error , interruption or connection break 
         except ( KeyboardInterrupt,IOError,OSError)as e:
@@ -130,7 +152,9 @@ class rcv_frames_thread(threading.Thread):
                 if self.CheckReset():
                     return None,None
             frame_ , msglen , spf = frame_
-            frame_ = Network.decode_frame(frame_) #decoding the frames
+            if not self.vflag:
+                frame_ = Network.decode_frame(frame_) #decoding the frames
+
             if rgb:
                 frame_ = cvtColor(frame_, COLOR_BGR2RGB)    # Converting from BGR to RGB
             [msglen_rate,spf] = self.m.mean([msglen,spf])
@@ -160,18 +184,38 @@ class send_frames_thread(threading.Thread):
     The reset threshold it will reset the connection after accumilating to this threshold
     encoding quality of the frames
     """
-    def __init__(self,connection=socket(),reset_threshold=60,encode_quality=90,w_max=30):
+    def __init__(self,connection=socket(),reset_threshold=60,encode_quality=90,w_max=30,vframes=4,vflag=False,dimension="224x224",fps='8'):
         self.key = True
         self.frames = Segmentation.thrQueue()
         self.connection = connection
         self.encode_quality=encode_quality
         self.reset_threshold=reset_threshold
         self.active_reset = False
+        self.vflag = vflag
+        self.vframes = vframes
         self.cond_ = threading.RLock()
         self.latest_spotted_time_measerand = [False,None]
+        self.command = ["ffmpeg",
+                '-y',
+                '-f', 'rawvideo',
+                '-vcodec','rawvideo',
+                '-s', dimension,
+                '-pix_fmt', 'bgr24',
+                '-r', fps,
+                '-i', '-',
+                '-an',
+                '-c:v', 'libx264',
+                '-preset','slow',
+                '-crf',str(encode_quality),
+                '-f','h264',
+                '-'
+                ]
+        self.pro = sp.Popen(self.command, stdin=sp.PIPE, stderr=sp.PIPE,stdout=sp.PIPE,bufsize=10**8)
+        self.pro.communicate()
         self.encode_param=[int(IMWRITE_JPEG_QUALITY),encode_quality] # object of the parameters of the encoding (JPEG with 90% quality) 
         if self.status:  # If the flag is true then initialize the mean object 
             self.m = Segmentation.mean(w_max)
+        self.count = 0
         threading.Thread.__init__(self)
         self.start()
 
@@ -210,13 +254,28 @@ class send_frames_thread(threading.Thread):
         putting data in a queue to be consumed by the new thread and send in order .
         """
         if not self.active_reset:
-            _ ,frame = imencode('.jpg',frame,self.encode_param) # encoding the img in JPEG with specified quality 
-            self.frames.put(frame)
-
+            if not self.vflag:
+                _ ,frame = imencode('.jpg',frame,self.encode_param) # encoding the img in JPEG with specified quality 
+                self.frames.put(frame.tostring())
+            else:
+                if self.count == 0:
+                    self.pro = sp.Popen(self.command, stdin=sp.PIPE, stderr=sp.PIPE,stdout=sp.PIPE,bufsize=10**8,shell=True)
+                    self.pro.stdin.write(frame.tostring())
+                    self.count += 1
+                elif self.count < self.vframes-1:
+                    self.pro.stdin.write(frame.tostring())
+                    self.count += 1
+                else: 
+                    stdout=self.pro.communicate(frame.tostring())[0]
+                    self.count = 0 
+                    self.frames.put(stdout)
     def Actreset(self):
         """
         method responsible for checking the reset condition (for ease use)
         """
+        self.counter = 0
+        if self.pro.poll() == None:
+            self.pro.terminate()
         return self.active_reset
 
     def close(self):
@@ -224,6 +283,8 @@ class send_frames_thread(threading.Thread):
         to terminate the thread swiftly
         """
         self.key = False # breaking the while loop of it's still on in the parallel process(run)
+        if self.pro.poll() == None:
+            self.pro.terminate()
         self.frames.close() # declaring there is no frames will be put on the shared queue from the main process
         self.join() # waiting for the parallel process to terminate
 
@@ -233,7 +294,7 @@ class send_frames_thread(threading.Thread):
                 t=time()-self.latest_spotted_time_measerand[1]
                 out=self.m.mean_temp([0,t])
             else :
-                out=self.m.mean.out
+                out=self.m.out
         return (1/out[1],out[0]/(out[1]*1000)) 
 
 

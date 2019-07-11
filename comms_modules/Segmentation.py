@@ -149,11 +149,12 @@ class Cap_Thread(threading.Thread):
 class Cap_Process(mp.Process):
     
     def __init__(self,fps_old,fps_new,id_,port,ip="0.0.0.0",reset_threshold=30,encode_quality=90,Tunnel=True,rgb=True,N1=1,N0=0
-        ,hostname=None,username=None,Key_path=None,passphrase=None):
+        ,hostname=None,username=None,Key_path=None,passphrase=None,vframes=6,vflag=False):
         self.frames = mp.Queue(0)
         self.key = mp.Value('b',True)
         self.rgb = rgb
         self.index =decision(fps_old,fps_new)
+        self.fps_new=fps_new
         self.reset_threshold=reset_threshold
         self.encode_quality = encode_quality
         self.id_ =id_
@@ -162,6 +163,8 @@ class Cap_Process(mp.Process):
         self.Tunnel = Tunnel
         self.N1=N1
         self.N0=N0
+        self.vframes=vframes
+        self.vflag=vflag
         self.hostname=hostname
         self.username=username
         self.Key_path=Key_path
@@ -191,7 +194,8 @@ class Cap_Process(mp.Process):
             classInd_file = 'UCF_lists/classInd.txt' #text file name
             top5_actions = Top_N(classInd_file)
 
-            send_frames = Streaming.send_frames_thread(connection=client[0],reset_threshold=self.reset_threshold,encode_quality=self.encode_quality)
+            send_frames = Streaming.send_frames_thread(connection=client[0],reset_threshold=self.reset_threshold,
+                encode_quality=self.encode_quality,vframes=self.vframes,vflag=self.vflag,dimension="224x224",fps=str(self.fps_new))
 
             rcv_results = Streaming.rcv_results_thread(connection=client[1])
             score = ();
@@ -223,7 +227,6 @@ class Cap_Process(mp.Process):
                     s = (s1,s3,s4,s5)
                     frame_=remove_bounderies1(frame_)
                     frame_=cv2.pyrUp(frame_)
-                    print(frame_.shape)
                     alpha = 0.3
                     font=cv2.FONT_HERSHEY_TRIPLEX
                     y=frame_.shape[0]-15
@@ -242,7 +245,10 @@ class Cap_Process(mp.Process):
                     rcv_results.reset()
                     add_status(frame_,s=('Reseting',),x=5,y=y,font=font,thickness=1,lineType=2,fontScale=1.6,fontcolor=(0,0,255),boxcolor=(200,200,200),alpha=alpha,x_mode='center')
                 
-                self.frames.put(frame_)
+                if frame_ is True :
+                    break
+                cv2.imshow('frame',frame_)
+                cv2.waitKey(4)
                 success, frame_ = cam_cap.read()
         except (KeyboardInterrupt,IOError,OSError) as e :
             pass
@@ -335,7 +341,6 @@ def remove_bounderies(frame):
     contours = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
     cnt = contours[0]
     x,y,w,h = cv2.boundingRect(cnt)
-    print(x,y,w,h)
     return frame[y:y+h,x:x+w]
 
 def remove_bounderies1(frame):

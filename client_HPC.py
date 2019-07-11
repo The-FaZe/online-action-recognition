@@ -19,6 +19,8 @@ parser.add_argument('--h',dest= 'hostname' , type = str , default = 'login01.c2.
 parser.add_argument('--passphrase',dest= 'passphrase' , type = str , default = None)
 parser.add_argument('--q',dest='encode_quality',type=int,default = 90)
 parser.add_argument('--r',dest='reset_threshold',type=int,default = 50)
+parser.add_argument('--v',dest='vflag',action='store_true')
+parser.add_argument('--vframes',type=int,default = 4)
 args = parser.parse_args()
 
 
@@ -43,15 +45,9 @@ def send_test():
 		capture =Cap_Process(fps_old=args.old_fps,fps_new=args.new_fps,id_=id
 			,port=port,ip=args.ip,Tunnel=args.tunnel,rgb=False,N1=args.N1,N0=args.N0
 			,hostname=args.hostname,username=args.username,Key_path=Key_path,passphrase=args.passphrase
-			,reset_threshold=args.reset_threshold,encode_quality=args.encode_quality)
+			,reset_threshold=args.reset_threshold,encode_quality=args.encode_quality,vframes=args.vframes,vflag=args.vflag)
 
-		while capture.is_alive():
-
-			frame = capture.get()
-			if frame is True :
-				break
-			imshow('frame',frame)
-			waitKey(4)
+		capture.join()
 	except (KeyboardInterrupt,IOError,OSError)as e:
 		pass
 	finally:

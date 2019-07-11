@@ -215,7 +215,6 @@ def send_frame(connection,img,active_reset=False):
             print("the frame is empty") 
             raise OSError 
         buff = pack('>L',buff_d) #converting the size into 4 bytes(struct) length msg ,(L means unsigned long),(> means big endian)
-        img = img.tostring()   #converting the encoded image array into bytes(struct) of the actual memory
         connection.sendall(buff) #sending the size of the frame(img)
         connection.sendall(img)  #sending the actual img 
         return buff_d

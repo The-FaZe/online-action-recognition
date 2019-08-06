@@ -1,13 +1,15 @@
 # Online Action Recognition
 
-![Action Recognition](recognition.PNG)
+<p align="center">
+	![Action Recognition](recognition.PNG) </center>
+</p>
 
 # Table of Contents
 * [Introduction](#Introduction)
 * [Thesis and Presentation](#Thesis-and-Presentation)
 * [Try Our Model](#Try-Our-Model)
 * [Prerequisites](#Prerequisites)
-* [Dataset Preparation (Google Colab)](#Dataset-Preparation-(Google Colab))
+* [Dataset Preparation (Google Colab)](#Dataset-Preparation--Google Colab-)
 * [List-File Generation](#List-File-Generation)
 * [Training](#Training)
 * [Testing](#Testing)

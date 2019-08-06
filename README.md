@@ -1,7 +1,7 @@
 # Online Action Recognition
 
 <p align="center">
-	![Action Recognition](recognition.PNG)
+	<img src="https://github.com/The-FaZe/real-time-action-recognition/blob/master/recognition.PNG" width="350" height="350">
 </p>
 
 # Table of Contents
@@ -9,8 +9,8 @@
 * [Thesis and Presentation](#Thesis-and-Presentation)
 * [Try Our Model](#Try-Our-Model)
 * [Prerequisites](#Prerequisites)
-* [Dataset Preparation on Google Colab)](#Dataset-Preparation-Google-Colab)
-* [List-File Generation](#List-File-Generation)
+* [Dataset Preparation on Google Colab)](#Dataset-Preparation-on-Google-Colab)
+* [List File Generation](#List-File-Generation)
 * [Training](#Training)
 * [Testing](#Testing)
 * [Contact](#Contact)

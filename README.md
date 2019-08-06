@@ -1,7 +1,7 @@
 # Online Action Recognition
 
 <p align="center">
-	![Action Recognition](recognition.PNG) </center>
+	![Action Recognition](recognition.PNG)
 </p>
 
 # Table of Contents
@@ -9,7 +9,7 @@
 * [Thesis and Presentation](#Thesis-and-Presentation)
 * [Try Our Model](#Try-Our-Model)
 * [Prerequisites](#Prerequisites)
-* [Dataset Preparation (Google Colab)](#Dataset-Preparation--Google Colab-)
+* [Dataset Preparation on Google Colab)](#Dataset-Preparation-Google-Colab)
 * [List-File Generation](#List-File-Generation)
 * [Training](#Training)
 * [Testing](#Testing)
@@ -53,7 +53,7 @@ We trained and tested our model on two Tesla K-80 GPUs (BA-HPC in Bibliotheca Al
 
 We ran and debugged all our codes on Google Colab, and once the model is ready for training, we switched to BA_HPC.
 
-## Dataset Preparation (Google Colab)
+## Dataset Preparation on Google Colab
 
 1. Change Runtime type to choose GPU.
 2. Check if the GPU is operating by running the following command:

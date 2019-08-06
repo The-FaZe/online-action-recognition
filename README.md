@@ -23,6 +23,10 @@ You can refer to our thesis book and presentation here for further information.
 
 Note: You can only train offline action recognition (ready captured videos), but unfortunately, you cannot try online recognition as you must have access to BA-HPC. If you do, please contact one of our members for further help.
 
+- download the weights for RGB and RGB Difference stream: 
+- save a video of your own doing an action of your choice from UCF101 Dataset.
+- Use `Offline_Recognition.py` and the weights you downloaded to recognize the actions in the video.
+
 ## Prerequisites
 
 * The code is written in Python 3.6 with the Anaconda Python Distribution.
@@ -34,6 +38,10 @@ We trained and tested our model on two Tesla K-80 GPUs (BA-HPC in Bibliotheca Al
 We ran and debugged all our codes on Google Colab, and once the model is ready for training, we switched to BA_HPC.
 
 ## List-File Generation
+
+You should generate your own dataset list file by checking `list_file.py`. You should modify the working directory in the last lines of the code based on your environment.
+
+Make sure to download UCF_lists folder. then, by running the code, you will have your own train\validation list files generated.
 
 ## Dataset Preparation (Google Colab)
 

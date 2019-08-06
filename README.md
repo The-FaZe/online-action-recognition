@@ -1,4 +1,6 @@
-# Online Action Recognition
+							# Online Action Recognition
+
+## Introduction
 
 We built an online action recognition system that recognizes different actions based on UCF-101 Dataset published in 2013. You can refer to it here: https://www.crcv.ucf.edu/data/UCF101.php
 
@@ -9,17 +11,31 @@ Our system is composed of many parts, and is mainly built on top of Temporal Seg
 Temporal Segment Networks for Action Recognition in Videos, Limin Wang, Yuanjun Xiong, Zhe Wang, Yu Qiao, Dahua Lin, Xiaoou Tang, and Luc Van Gool, TPAMI, 2018.
 [[Arxiv Preprint](https://arxiv.org/abs/1705.02953)]
 
+Our code is well-commented and understandable if you spend some time to keep track of each file and its task.
+
+## Thesis and Presentation
+
+You can refer to our thesis book and presentation here for further information.
+[[Thesis Book]](https://drive.google.com/open?id=1m4O7y54LIowofK2ThnZ2Y6gNKBtwfmVK)
+[[Presentation]](https://drive.google.com/file/d/1sCNLpp0VYBiArNoH19p0hyBhD7Kg20Rk/view?usp=sharing)
+
+## Try our model
+
+Note: You can only train offline action recognition (ready captured videos), but unfortunately, you cannot try online recognition as you must have access to BA-HPC. If you do, please contact one of our members for further help.
+
 ## Prerequisites
 
 * The code is written in Python 3.6 with the Anaconda Python Distribution.
-* GPUs are required for training.
+* GPUs are required for training and testing.
 * Google Colab
 
 We trained and tested our model on two Tesla K-80 GPUs (BA-HPC in Bibliotheca Alexandrina). You can finish training on only one GPU but testing will get you stuck due to the lack of cuda memory as you feed the network one video at a time. 
 
 We ran and debugged all our codes on Google Colab, and once the model is ready for training, we switched to BA_HPC.
 
-## Steps to get the model ready for training (Google Colab)
+## List-File Generation
+
+## Dataset Preparation (Google Colab)
 
 1. Change Runtime type to choose GPU.
 2. Check if the GPU is operating by running the following command:
@@ -135,6 +151,13 @@ python3 -u test_models.py ucf101 RGBDiff <ucf101_rgb_test_list> <weights_directo
 
 If you have only one GPU, you can remove gpus & j parameters.
 
+
+## Contact
+For any questions, please contact.
+```
+Ahmed Gamaleldin: ahmedgamal1496@gmail.com
+Ahmed Saied: ahmed1337saied@gmail.com
+```
 
 
 

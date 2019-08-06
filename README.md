@@ -11,12 +11,13 @@ Our system is composed of many parts, and is mainly built on top of Temporal Seg
 Temporal Segment Networks for Action Recognition in Videos, Limin Wang, Yuanjun Xiong, Zhe Wang, Yu Qiao, Dahua Lin, Xiaoou Tang, and Luc Van Gool, TPAMI, 2018.
 [[Arxiv Preprint](https://arxiv.org/abs/1705.02953)]
 
-Our code is well-commented and understandable if you spend some time to keep track of each file and its task.
+Our code is well-commented and understandable if you spend some time to keep track of each file and its specific task.
 
 ## Thesis and Presentation
 
 You can refer to our thesis book and presentation here for further information.
 [[Thesis Book]](https://drive.google.com/open?id=1m4O7y54LIowofK2ThnZ2Y6gNKBtwfmVK)
+
 [[Presentation]](https://drive.google.com/file/d/1sCNLpp0VYBiArNoH19p0hyBhD7Kg20Rk/view?usp=sharing)
 
 ## Try our model

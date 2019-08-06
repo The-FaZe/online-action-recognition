@@ -11,6 +11,10 @@ PyTorch 0.4 for the Proxy-NCA implementation, see
 https://github.com/dichotomies/proxy-nca.
 """
 
+"""
+This is for loading the BNInception model architecture (Inception v2) from net.
+"""
+
 def bn_inception(pretrained=False,**kwargs):
     model = BNInception(**kwargs)
     if pretrained:

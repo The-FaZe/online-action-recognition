@@ -9,7 +9,7 @@
 * [Thesis and Presentation](#Thesis-and-Presentation)
 * [Try Our Model](#Try-Our-Model)
 * [Prerequisites](#Prerequisites)
-* [Dataset Preparation on Google Colab)](#Dataset-Preparation-on-Google-Colab)
+* [Dataset Preparation on Google Colab](#Dataset-Preparation-on-Google-Colab)
 * [List File Generation](#List-File-Generation)
 * [Training](#Training)
 * [Testing](#Testing)

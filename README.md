@@ -1,19 +1,19 @@
 # Online Action Recognition
 
-![Action Recognition](recognition.png)
+![Action Recognition](recognition.PNG)
 
 # Table of Contents
 * [Introduction](#Introduction)
-* [Thesis and Presentation](#Thesis and Presentation)
-* [Try Our Model](#Try Our Model)
+* [Thesis and Presentation](#Thesis-and-Presentation)
+* [Try Our Model](#Try-Our-Model)
 * [Prerequisites](#Prerequisites)
-* [Dataset Preparation (Google Colab)](#Dataset Preparation (Google Colab))
-* [List-File Generation](#List-File Generation)
+* [Dataset Preparation (Google Colab)](#Dataset-Preparation-(Google Colab))
+* [List-File Generation](#List-File-Generation)
 * [Training](#Training)
 * [Testing](#Testing)
 * [Contact](#Contact)
 
-
+----
 ## Introduction
 
 We built an online action recognition system that recognizes different actions based on UCF-101 Dataset published in 2013. You can refer to it here: https://www.crcv.ucf.edu/data/UCF101.php
@@ -35,7 +35,7 @@ You can refer to our thesis book and presentation here for further information.
 
 ## Try Our Model
 
-Note: You can only try offline action recognition (ready captured videos), but unfortunately, you cannot try online recognition as you must have access to BA-HPC. If you do, please contact one of our members for further help.
+Note: You can try offline action recognition (ready captured videos), but unfortunately, you cannot try online recognition as you must have access to BA-HPC. If you do, please contact one of our members for further help.
 
 - download the weights for RGB and RGB Difference stream: [[Drive Link](https://drive.google.com/file/d/1_jby_YBDbn5n74S2_BYi9-oqVQQw_nxl/view?usp=sharing)]
 - save a video of your own doing an action of your choice from UCF101 Dataset.
@@ -104,7 +104,7 @@ This should take a while. You can now see the dataset files are ready in the Fil
 !git clone https://github.com/The-FaZe/real-time-action-recognition.git
 ```
 
-## List-File Generation
+## List File Generation
 
 You should generate your dataset list file by checking `list_file.py`. You should modify the working directory in the last lines of the code based on your environment.
 
@@ -173,7 +173,7 @@ python3 -u test_models.py ucf101 RGBDiff <ucf101_rgb_test_list> <weights_directo
 
 If you have only one GPU, you can remove gpus & j parameters.
 
-
+----
 ## Contact
 For any questions, please contact.
 ```

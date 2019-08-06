@@ -1,4 +1,4 @@
-							# Online Action Recognition
+# Online Action Recognition
 
 ## Introduction
 

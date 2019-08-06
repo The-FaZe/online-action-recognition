@@ -4,7 +4,7 @@
 	<img src="https://github.com/The-FaZe/real-time-action-recognition/blob/master/recognition.PNG" width="350" height="350">
 </p>
 
-Kindly, check our latest video [[Youtube Link](https://www.youtube.com/watch?v=-Ztm4shAPHM&t=4s) 
+Kindly, check our latest video [[Youtube Link](https://www.youtube.com/watch?v=-Ztm4shAPHM&t=4s)]
 
 # Table of Contents
 * [Introduction](#Introduction)

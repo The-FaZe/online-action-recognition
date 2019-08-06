@@ -16,9 +16,8 @@ Our code is well-commented and understandable if you spend some time to keep tra
 ## Thesis and Presentation
 
 You can refer to our thesis book and presentation here for further information.
-[[Thesis Book]](https://drive.google.com/open?id=1m4O7y54LIowofK2ThnZ2Y6gNKBtwfmVK)
-
-[[Presentation]](https://drive.google.com/file/d/1sCNLpp0VYBiArNoH19p0hyBhD7Kg20Rk/view?usp=sharing)
+[[Thesis Book](https://drive.google.com/open?id=1m4O7y54LIowofK2ThnZ2Y6gNKBtwfmVK)]
+[[Presentation](https://drive.google.com/file/d/1sCNLpp0VYBiArNoH19p0hyBhD7Kg20Rk/view?usp=sharing)]
 
 ## Try our model
 

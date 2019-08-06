@@ -1,12 +1,26 @@
 # Online Action Recognition
 
+![Action Recognition](recognition.png)
+
+# Table of Contents
+* [Introduction](#Introduction)
+* [Thesis and Presentation](#Thesis and Presentation)
+* [Try Our Model](#Try Our Model)
+* [Prerequisites](#Prerequisites)
+* [Dataset Preparation (Google Colab)](#Dataset Preparation (Google Colab))
+* [List-File Generation](#List-File Generation)
+* [Training](#Training)
+* [Testing](#Testing)
+* [Contact](#Contact)
+
+
 ## Introduction
 
 We built an online action recognition system that recognizes different actions based on UCF-101 Dataset published in 2013. You can refer to it here: https://www.crcv.ucf.edu/data/UCF101.php
 
-Online recognition means that we receive stream of frames from a camera and determine the recognized action directly. That is different from the offline approach which outputs the action after processing a captured video.
+Online recognition means that we receive a stream of frames from a camera and determine the recognized action directly. That is different from the offline approach which outputs the action after processing a captured video.
 
-Our system is composed of many parts, and is mainly built on top of Temporal Segment Networks.
+Our system is composed of many parts and is mainly built on top of Temporal Segment Networks.
 
 Temporal Segment Networks for Action Recognition in Videos, Limin Wang, Yuanjun Xiong, Zhe Wang, Yu Qiao, Dahua Lin, Xiaoou Tang, and Luc Van Gool, TPAMI, 2018.
 [[Arxiv Preprint](https://arxiv.org/abs/1705.02953)]
@@ -19,11 +33,11 @@ You can refer to our thesis book and presentation here for further information.
 [[Thesis Book](https://drive.google.com/open?id=1m4O7y54LIowofK2ThnZ2Y6gNKBtwfmVK)]
 [[Presentation](https://drive.google.com/file/d/1sCNLpp0VYBiArNoH19p0hyBhD7Kg20Rk/view?usp=sharing)]
 
-## Try our model
+## Try Our Model
 
-Note: You can only train offline action recognition (ready captured videos), but unfortunately, you cannot try online recognition as you must have access to BA-HPC. If you do, please contact one of our members for further help.
+Note: You can only try offline action recognition (ready captured videos), but unfortunately, you cannot try online recognition as you must have access to BA-HPC. If you do, please contact one of our members for further help.
 
-- download the weights for RGB and RGB Difference stream: 
+- download the weights for RGB and RGB Difference stream: [[Drive Link](https://drive.google.com/file/d/1_jby_YBDbn5n74S2_BYi9-oqVQQw_nxl/view?usp=sharing)]
 - save a video of your own doing an action of your choice from UCF101 Dataset.
 - Use `Offline_Recognition.py` and the weights you downloaded to recognize the actions in the video.
 
@@ -33,15 +47,9 @@ Note: You can only train offline action recognition (ready captured videos), but
 * GPUs are required for training and testing.
 * Google Colab
 
-We trained and tested our model on two Tesla K-80 GPUs (BA-HPC in Bibliotheca Alexandrina). You can finish training on only one GPU but testing will get you stuck due to the lack of cuda memory as you feed the network one video at a time. 
+We trained and tested our model on two Tesla K-80 GPUs (BA-HPC in Bibliotheca Alexandrina). You can finish training on only one GPU but testing will get you stuck due to the lack of Cuda memory as you feed the network one video at a time during test phase. 
 
 We ran and debugged all our codes on Google Colab, and once the model is ready for training, we switched to BA_HPC.
-
-## List-File Generation
-
-You should generate your own dataset list file by checking `list_file.py`. You should modify the working directory in the last lines of the code based on your environment.
-
-Make sure to download UCF_lists folder. then, by running the code, you will have your own train\validation list files generated.
 
 ## Dataset Preparation (Google Colab)
 
@@ -96,6 +104,12 @@ This should take a while. You can now see the dataset files are ready in the Fil
 !git clone https://github.com/The-FaZe/real-time-action-recognition.git
 ```
 
+## List-File Generation
+
+You should generate your dataset list file by checking `list_file.py`. You should modify the working directory in the last lines of the code based on your environment.
+
+Make sure to download UCF_lists folder. then, by running the code, you will have your own train\validation list files generated.
+
 ## Training
 
 To train our model, use main.py script by running the following:
@@ -133,9 +147,9 @@ Parameters between <...> should be specified by yourself.
 
 b & j should be tuned according to your capacity of GPUs and memory size. They should be reduced to suit the GPU in Google Colab.
 
-Note: You can fully train the RGB stream but your GPU memory will failt when training on RGB difference stream as you feed the network with 3 times frames of the RGB stream, so you might need two GPUs not only one.
+Note: You can fully train the RGB stream but your GPU memory will fail when training on RGB difference stream as you feed the network with 3 times frames of the RGB stream, so you might need two GPUs not only one.
 
-KinWeights refer to the pretrained Kinetcis dataset. In the original work, the model is pretrained on ImageNet dataset to overcome overfitting. Adding Kinetics pretrained weights instead of ImageNet increases accuracy because Kinetics is a large dataset includes 600 different classes for actions.
+KinWeights refer to the pretrained Kinetcs dataset. In the original work, the model is pretrained on ImageNet dataset to overcome overfitting. Adding Kinetics pretrained weights instead of ImageNet increases accuracy because Kinetics is a large dataset includes 600 different classes for actions.
 
 
 ## Testing

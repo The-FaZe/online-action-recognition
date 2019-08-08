@@ -131,14 +131,28 @@ To train our model, use main.py script by running the following:
 
 For RGB stream:
 ```
-%%shell
+#for any linux machine use .. 
 
+python3 <main.py directroy> ucf101 RGB \
+	<train_list_file> <val_list_file> \
+   	--arch  BNInception --num_segments 3 \
+  	 --gd 20 --lr 0.001 --lr_steps 30 60 --epochs 80 \
+  	 -b 128 -j 8 --dropout 0.8 \
+  	 --snapshot_pref <weights_file_name> \
+   	 --KinWeights <Kinetics_weights_file_directory>
+
+#for google colab use .. 
+
+%%shell
 python3 /content/real-time-action-recognition/main.py ucf101 RGB \
-<ucf101_rgb_train_list> <ucf101_rgb_val_list> \
-   --arch  BNInception --num_segments 3 \
+   /content/real-time-action-recognition/UCF_lists/rgb_train_FileList1.txt \
+   /content/real-time-action-recognition/UCF_lists/rgb_test_FileList1.txt  \
+   --arch BNInception --num_segments 3 \
    --gd 20 --lr 0.001 --lr_steps 30 60 --epochs 80 \
-   -b 128 -j 8 --dropout 0.8 \
-   --snapshot_pref <weights_file_name>
+   -b 128 -j 8  --dropout 0.8 \
+   --snapshot_pref Kinetics_BNInception_ \
+   --KinWeights /content/real-time-action-recognition/Kinetics_Weights/kinetics_tsn_rgb.pth.tar \
+  
 ```
 
 Hyperparameters tuning was done by the authors of TSN paper and we did a little bit of modifications to suit our GPU capacity. 
@@ -146,8 +160,7 @@ You can find what each symbol stands for in the scripting file "parser_commands.
 
 For RGB Difference stream:
 ```
-%%shell
-
+#For any linux machine use..
 python3 /content/real-time-action-recognition/main.py ucf101 RGBDiff \
 <ucf101_rgb_train_list> <ucf101_rgb_val_list> \
   --arch  BNInception --num_segments 3 \
@@ -156,6 +169,17 @@ python3 /content/real-time-action-recognition/main.py ucf101 RGBDiff \
   --gpus 0 1 \
   --KinWeights <kinetics_weights_directory> \
   --snapshot_pref <weights_file_name>
+ 
+#For Google Colab use .. 
+%%shell
+python3 /content/real-time-action-recognition/main.py ucf101 RGBDiff \
+   /content/real-time-action-recognition/UCF_lists/rgb_train_FileList1.txt \
+   /content/real-time-action-recognition/UCF_lists/rgb_test_FileList1.txt  \
+   --arch BNInception --num_segments 3 \
+   --gd 40 --lr 0.001 --lr_steps 80 160 --epochs 180 \
+   -b 64 -j 8  --dropout 0.8 \
+   --snapshot_pref Kinetics_BNInception_ \
+   --KinWeights /content/real-time-action-recognition/Kinetics_Weights/kinetics_tsn_flow.pth.tar
 ```
 
 Parameters between <...> should be specified by yourself. 
@@ -172,21 +196,42 @@ KinWeights refer to the pretrained Kinetcs dataset. In the original work, the mo
 RGB stream:
 
 ```
-python3 -u test_models.py ucf101 RGB <ucf101_rgb_test_list> <weights_directory> \
-        --arch BNInception --save_scores <score_file_name> \
-        --classInd_file <class_index_file> \
-	      --gpus 0 1 -j 2
+#For any linux machine use..
+python3 <test_models.py directory> ucf101 RGB <ucf101_test_list> <weights_directory> \
+	   --gpus 0 1 --arch BNInception --save_scores <score_file_name> \
+	   --workers 1 --max_num 5 \
+	   --classInd_file <class_index_file>
+	      
+#For google colab use..
+
+%%shell 
+python3 /content/real-time-action-recognition/test_models.py ucf101 RGB \
+/content/real-time-action-recognition/UCF_lists/rgb_test_FileList1.txt \
+/content/real-time-action-recognition/Kinetics_Weights/kinetics_rgb_final.pth.tar \
+ --gpus 0 --arch BNInception --save_scores rgb_scores --workers 1 --max_num 5 \
+ --classInd_file /content/real-time-action-recognition/UCF_lists/classInd.txt
+ 
 ```
 
 RGBDiff Stream:
 ```
-python3 -u test_models.py ucf101 RGBDiff <ucf101_rgb_test_list> <weights_directory> \
-   --arch BNInception --save_scores <score_file_name> \
-   --classInd_file <class_index_file> \ 
-   --gpus 0 1 -j 2
+#For any linux machine use..
+python3 <test_models.py directory> ucf101 RGBDiff <ucf101_test_list> <weights_directory> \
+	   --gpus 0 1 --arch BNInception --save_scores <score_file_name> \
+	   --workers 1 --max_num 5 \
+	   --classInd_file <class_index_file>
+
+#For google colab use..
+
+%%shell 
+python3 /content/real-time-action-recognition/test_models.py ucf101 RGBDiff \
+/content/real-time-action-recognition/UCF_lists/rgb_test_FileList1.txt \
+/content/real-time-action-recognition/Kinetics_Weights/kinetics_rgbdiff_final.pth.tar \
+ --gpus 0 --arch BNInception --save_scores rgbDiff_scores --workers 1 --max_num 5 \
+ --classInd_file /content/real-time-action-recognition/UCF_lists/classInd.txt    
 ```
 
-If you have only one GPU, you can remove gpus & j parameters.
+If you have only one GPU, you can remove gpus & worker parameters.
 
 ----
 ## Contact
@@ -195,8 +240,3 @@ For any questions, please contact.
 Ahmed Gamaleldin: ahmedgamal1496@gmail.com
 Ahmed Saied: ahmed1337saied@gmail.com
 ```
-
-
-
-
-

@@ -46,8 +46,8 @@ Note: You can try offline action recognition (ready captured videos), but unfort
 !pip install -q xlrd
 !git clone https://github.com/The-FaZe/real-time-action-recognition.git
 ```
-2-Capture your own video doing any action included in UCF101 dataset.(Capture your video in 480p or 1080p quality).
-3-Upload your video to google colab enviroment.
+2-Capture your own video doing any action included in UCF101 dataset.(Capture your video in 480p or 1080p quality)
+3-Upload your video to google colab enviroment
 4-run Offline_Recognition.py as follows ..
 ```
 %%shell

@@ -39,7 +39,7 @@ You can refer to our thesis book and presentation here for further information.
 
 ## Try Our Model
 
-Note: You can try offline action recognition (ready captured videos), but unfortunately, you cannot try online recognition as you must have access to BA-HPC. If you do, please contact one of our members for further help.
+Note: You can try offline action recognition (ready captured videos), but unfortunately, you cannot try online recognition as you must have access to Bibliotheca Alexandria High Performance Computer(BA-HPC). If you do, please contact one of our members for further help.
 
 - download the weights for RGB and RGB Difference stream: [[Drive Link](https://drive.google.com/file/d/1_jby_YBDbn5n74S2_BYi9-oqVQQw_nxl/view?usp=sharing)]
 - save a video of your own doing an action of your choice from UCF101 Dataset.
@@ -51,7 +51,7 @@ Note: You can try offline action recognition (ready captured videos), but unfort
 * GPUs are required for training and testing.
 * Google Colab
 
-We trained and tested our model on two Tesla K-80 GPUs (BA-HPC in Bibliotheca Alexandrina). You can finish training on only one GPU but testing will get you stuck due to the lack of Cuda memory as you feed the network one video at a time during test phase. 
+We trained and tested our model on two Tesla K-80 GPUs (BA-HPC in Bibliotheca Alexandria). You can finish training on only one GPU(eg:Google Colab). but testing will get you stuck due to the lack of Cuda memory as you feed the network one video at a time during test phase. 
 
 We ran and debugged all our codes on Google Colab, and once the model is ready for training, we switched to BA_HPC.
 
@@ -112,6 +112,17 @@ This should take a while. You can now see the dataset files are ready in the Fil
 
 You should generate your dataset list file by checking `list_file.py`. You should modify the working directory in the last lines of the code based on your environment.
 
+```
+#For any linux machine use..
+python3 <List_file directory> <Dataset_file_directory> <Output_directory> <Text_files_directory>
+
+#in case of using google colab
+
+%%shell
+python3 /content/real-time-action-recognition/list_file.py \
+/content/jpegs_256 /content /content/real-time-action-recognition/UCF_lists
+
+```
 Make sure to download UCF_lists folder. then, by running the code, you will have your own train\validation list files generated.
 
 ## Training

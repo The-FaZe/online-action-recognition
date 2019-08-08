@@ -41,9 +41,25 @@ You can refer to our thesis book and presentation here for further information.
 
 Note: You can try offline action recognition (ready captured videos), but unfortunately, you cannot try online recognition as you must have access to Bibliotheca Alexandria High Performance Computer(BA-HPC). If you do, please contact one of our members for further help.
 
-- download the weights for RGB and RGB Difference stream: [[Drive Link](https://drive.google.com/file/d/1_jby_YBDbn5n74S2_BYi9-oqVQQw_nxl/view?usp=sharing)]
-- save a video of your own doing an action of your choice from UCF101 Dataset.
-- Use `Offline_Recognition.py` and the weights you downloaded to recognize the actions in the video.
+1-Open google colab and clone our repo using 
+```
+!pip install -q xlrd
+!git clone https://github.com/The-FaZe/real-time-action-recognition.git
+```
+2-Capture your own video doing any action included in UCF101 dataset.(Capture your video in 480p or 1080p quality).
+3-Upload your video to google colab enviroment.
+4-run Offline_Recognition.py as follows ..
+```
+%%shell
+
+python3 /content/real-time-action-recognition/Offline_Recognition.py ucf101 \
+/content/real-time-action-recognition/Kinetics_Weights/kinetics_rgb_final.pth.tar\
+/content/real-time-action-recognition/Kinetics_Weights/kinetics_rgbdiff_final.pth.tar \
+--arch BNInception --classInd_file /content/real-time-action-recognition/UCF_lists/classInd.txt \
+-j 1 --video /content/drive/My\ Drive/Graduation_Project_Team_Memories/Background.mp4 \
+--num_segments 3 --sampling_freq 12 --delta 2 --psi 0 --score_weights 1 1.5 --quality 1080p
+```
+5-You should see .avi file in "/content/real-time-action-recognition" directory, go ahead download and play it.
 
 ## Prerequisites
 

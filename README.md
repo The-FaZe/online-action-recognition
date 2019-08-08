@@ -123,6 +123,7 @@ This should take a while. You can now see the dataset files are ready in the Fil
 ```
 !pip install -q xlrd
 !git clone https://github.com/The-FaZe/real-time-action-recognition.git
+!git clone https://github.com/The-FaZe/Weights.git
 ```
 
 ## List File Generation

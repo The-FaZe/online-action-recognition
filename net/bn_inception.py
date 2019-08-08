@@ -18,7 +18,7 @@ This is for loading the BNInception model architecture (Inception v2) from net.
 def bn_inception(pretrained=False,**kwargs):
     model = BNInception(**kwargs)
     if pretrained:
-        model.load_state_dict(torch.load(r'net/bn_inception_weights_pt04.pt'))
+        model.load_state_dict(torch.load(r'bn_inception_weights_pt04.pt'))
     return model
 
 class BNInception(nn.Module):

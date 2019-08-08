@@ -41,10 +41,11 @@ You can refer to our thesis book and presentation here for further information.
 
 Note: You can try offline action recognition (ready captured videos), but unfortunately, you cannot try online recognition as you must have access to Bibliotheca Alexandria High Performance Computer(BA-HPC). If you do, please contact one of our members for further help.
 
-1. Open google colab and clone our repo using 
+1. Open google colab and clone our repos using 
 ```
 !pip install -q xlrd
 !git clone https://github.com/The-FaZe/real-time-action-recognition.git
+!git clone https://github.com/The-FaZe/Weights.git
 ```
 2. Capture your own video doing any action included in UCF101 dataset.(Capture your video in 480p or 1080p quality)
 3. Upload your video to google colab enviroment
@@ -53,8 +54,8 @@ Note: You can try offline action recognition (ready captured videos), but unfort
 %%shell
 
 python3 /content/real-time-action-recognition/Offline_Recognition.py ucf101 \
-/content/real-time-action-recognition/Kinetics_Weights/kinetics_rgb_final.pth.tar\
-/content/real-time-action-recognition/Kinetics_Weights/kinetics_rgbdiff_final.pth.tar \
+/content/Weights/RGB_Final.tar \
+/content/Weights/RGBDiff_Final.tar \
 --arch BNInception --classInd_file /content/real-time-action-recognition/UCF_lists/classInd.txt \
 -j 1 --video /content/drive/My\ Drive/Graduation_Project_Team_Memories/Background.mp4 \
 --num_segments 3 --sampling_freq 12 --delta 2 --psi 0 --score_weights 1 1.5 --quality 1080p
@@ -167,7 +168,7 @@ python3 /content/real-time-action-recognition/main.py ucf101 RGB \
    --gd 20 --lr 0.001 --lr_steps 30 60 --epochs 80 \
    -b 128 -j 8  --dropout 0.8 \
    --snapshot_pref Kinetics_BNInception_ \
-   --KinWeights /content/real-time-action-recognition/Kinetics_Weights/kinetics_tsn_rgb.pth.tar \
+   --KinWeights /content/Weights/kinetics_tsn_rgb.pth.tar 
   
 ```
 
@@ -195,7 +196,7 @@ python3 /content/real-time-action-recognition/main.py ucf101 RGBDiff \
    --gd 40 --lr 0.001 --lr_steps 80 160 --epochs 180 \
    -b 64 -j 8  --dropout 0.8 \
    --snapshot_pref Kinetics_BNInception_ \
-   --KinWeights /content/real-time-action-recognition/Kinetics_Weights/kinetics_tsn_flow.pth.tar
+   --KinWeights /content/Weights/kinetics_tsn_rgb.pth.tar
 ```
 
 Parameters between <...> should be specified by yourself. 
@@ -219,11 +220,10 @@ python3 <test_models.py directory> ucf101 RGB <ucf101_test_list> <weights_direct
 	   --classInd_file <class_index_file>
 	      
 #For google colab use..
-
 %%shell 
 python3 /content/real-time-action-recognition/test_models.py ucf101 RGB \
 /content/real-time-action-recognition/UCF_lists/rgb_test_FileList1.txt \
-/content/real-time-action-recognition/Kinetics_Weights/kinetics_rgb_final.pth.tar \
+/content/Weights/RGB_Final.tar \
  --gpus 0 --arch BNInception --save_scores rgb_scores --workers 1 --max_num 5 \
  --classInd_file /content/real-time-action-recognition/UCF_lists/classInd.txt
  
@@ -238,11 +238,10 @@ python3 <test_models.py directory> ucf101 RGBDiff <ucf101_test_list> <weights_di
 	   --classInd_file <class_index_file>
 
 #For google colab use..
-
 %%shell 
 python3 /content/real-time-action-recognition/test_models.py ucf101 RGBDiff \
 /content/real-time-action-recognition/UCF_lists/rgb_test_FileList1.txt \
-/content/real-time-action-recognition/Kinetics_Weights/kinetics_rgbdiff_final.pth.tar \
+/content/Weights/RGBDiff_Final.tar \
  --gpus 0 --arch BNInception --save_scores rgbDiff_scores --workers 1 --max_num 5 \
  --classInd_file /content/real-time-action-recognition/UCF_lists/classInd.txt    
 ```

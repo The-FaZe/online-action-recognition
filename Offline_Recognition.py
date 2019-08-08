@@ -1,8 +1,8 @@
 import os 
 import time
 #change this to your working directory
-current_dir = os.getcwd()
-os.chdir(current_dir + '/real-time-action-recognition')
+#current_dir = os.getcwd()
+#os.chdir(current_dir + '/real-time-action-recognition')
 
 import torch
 import torch.nn.parallel

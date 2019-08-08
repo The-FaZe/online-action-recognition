@@ -41,14 +41,14 @@ You can refer to our thesis book and presentation here for further information.
 
 Note: You can try offline action recognition (ready captured videos), but unfortunately, you cannot try online recognition as you must have access to Bibliotheca Alexandria High Performance Computer(BA-HPC). If you do, please contact one of our members for further help.
 
-1-Open google colab and clone our repo using 
+1. Open google colab and clone our repo using 
 ```
 !pip install -q xlrd
 !git clone https://github.com/The-FaZe/real-time-action-recognition.git
 ```
-2-Capture your own video doing any action included in UCF101 dataset.(Capture your video in 480p or 1080p quality)
-3-Upload your video to google colab enviroment
-4-run Offline_Recognition.py as follows ..
+2. Capture your own video doing any action included in UCF101 dataset.(Capture your video in 480p or 1080p quality)
+3. Upload your video to google colab enviroment
+4. run Offline_Recognition.py as follows ..
 ```
 %%shell
 

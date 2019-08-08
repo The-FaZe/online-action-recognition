@@ -57,10 +57,12 @@ python3 /content/real-time-action-recognition/Offline_Recognition.py ucf101 \
 /content/Weights/RGB_Final.tar \
 /content/Weights/RGBDiff_Final.tar \
 --arch BNInception --classInd_file /content/real-time-action-recognition/UCF_lists/classInd.txt \
--j 1 --video /content/drive/My\ Drive/Graduation_Project_Team_Memories/Background.mp4 \
+-j 1 --video <video directory (eg: /Content/TestVideo.mp4)> \
 --num_segments 3 --sampling_freq 12 --delta 2 --psi 0 --score_weights 1 1.5 --quality 1080p
 ```
-5-You should see .avi file in "/content/real-time-action-recognition" directory, go ahead download and play it.
+You should set quality argument according to your video quality, Also psi parameter is responsible for No assigned action, psi=0 means that "No action class" is deactivated, setting psi = 1~2.5 will be just fine.
+
+5.You should see .avi file in "/content/real-time-action-recognition" directory, go ahead download and play it.
 
 ## Prerequisites
 

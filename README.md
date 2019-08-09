@@ -51,8 +51,16 @@ Note: You can try offline action recognition (ready captured videos), but unfort
 3. Upload your video to google colab enviroment
 4. run Offline_Recognition.py as follows ..
 ```
-%%shell
+#For Linux machine use .. 
+python3 <Offline_Recognition.py Directory> ucf101 \
+<Rgb_weights_directory> \
+<RgbDiff_weights_directory> \
+--arch BNInception --classInd_file <classInd.txt directory> \
+-j 1 --video <video directory (eg: /Content/TestVideo.mp4)> \
+--num_segments 3 --sampling_freq 12 --delta 2 --psi 0 --score_weights 1 1.5 --quality 1080p
 
+#For google colab use ..
+%%shell
 python3 /content/real-time-action-recognition/Offline_Recognition.py ucf101 \
 /content/Weights/RGB_Final.tar \
 /content/Weights/RGBDiff_Final.tar \
@@ -157,19 +165,18 @@ python3 <main.py directroy> ucf101 RGB \
 	<train_list_file> <val_list_file> \
    	--arch  BNInception --num_segments 3 \
   	 --gd 20 --lr 0.001 --lr_steps 30 60 --epochs 80 \
-  	 -b 128 -j 8 --dropout 0.8 \
+  	 -b 64 -j 8 --dropout 0.8 \
   	 --snapshot_pref <weights_file_name> \
    	 --KinWeights <Kinetics_weights_file_directory>
 
 #for google colab use .. 
-
 %%shell
 python3 /content/real-time-action-recognition/main.py ucf101 RGB \
    /content/real-time-action-recognition/UCF_lists/rgb_train_FileList1.txt \
    /content/real-time-action-recognition/UCF_lists/rgb_test_FileList1.txt  \
    --arch BNInception --num_segments 3 \
    --gd 20 --lr 0.001 --lr_steps 30 60 --epochs 80 \
-   -b 128 -j 8  --dropout 0.8 \
+   -b 64 -j 8  --dropout 0.8 \
    --snapshot_pref Kinetics_BNInception_ \
    --KinWeights /content/Weights/kinetics_tsn_rgb.pth.tar 
   
@@ -185,7 +192,7 @@ python3 /content/real-time-action-recognition/main.py ucf101 RGBDiff \
 <ucf101_rgb_train_list> <ucf101_rgb_val_list> \
   --arch  BNInception --num_segments 3 \
   --gd 40 --lr 0.001 --lr_steps 80 160 --epochs 180 \
-  -b 128 -j 8 --dropout 0.8 \
+  -b 32 -j 8 --dropout 0.8 \
   --gpus 0 1 \
   --KinWeights <kinetics_weights_directory> \
   --snapshot_pref <weights_file_name>
@@ -197,7 +204,7 @@ python3 /content/real-time-action-recognition/main.py ucf101 RGBDiff \
    /content/real-time-action-recognition/UCF_lists/rgb_test_FileList1.txt  \
    --arch BNInception --num_segments 3 \
    --gd 40 --lr 0.001 --lr_steps 80 160 --epochs 180 \
-   -b 64 -j 8  --dropout 0.8 \
+   -b 32 -j 8  --dropout 0.8 \
    --snapshot_pref Kinetics_BNInception_ \
    --KinWeights /content/Weights/kinetics_tsn_rgb.pth.tar
 ```
@@ -219,7 +226,7 @@ RGB stream:
 #For any linux machine use..
 python3 <test_models.py directory> ucf101 RGB <ucf101_test_list> <weights_directory> \
 	   --gpus 0 1 --arch BNInception --save_scores <score_file_name> \
-	   --workers 1 --max_num 5 \
+	   --workers 1 \
 	   --classInd_file <class_index_file>
 	      
 #For google colab use..
@@ -227,7 +234,7 @@ python3 <test_models.py directory> ucf101 RGB <ucf101_test_list> <weights_direct
 python3 /content/real-time-action-recognition/test_models.py ucf101 RGB \
 /content/real-time-action-recognition/UCF_lists/rgb_test_FileList1.txt \
 /content/Weights/RGB_Final.tar \
- --gpus 0 --arch BNInception --save_scores rgb_scores --workers 1 --max_num 5 \
+ --gpus 0 --arch BNInception --save_scores rgb_scores --workers 1 \
  --classInd_file /content/real-time-action-recognition/UCF_lists/classInd.txt
  
 ```
@@ -237,7 +244,7 @@ RGBDiff Stream:
 #For any linux machine use..
 python3 <test_models.py directory> ucf101 RGBDiff <ucf101_test_list> <weights_directory> \
 	   --gpus 0 1 --arch BNInception --save_scores <score_file_name> \
-	   --workers 1 --max_num 5 \
+	   --workers 1  \
 	   --classInd_file <class_index_file>
 
 #For google colab use..
@@ -245,7 +252,7 @@ python3 <test_models.py directory> ucf101 RGBDiff <ucf101_test_list> <weights_di
 python3 /content/real-time-action-recognition/test_models.py ucf101 RGBDiff \
 /content/real-time-action-recognition/UCF_lists/rgb_test_FileList1.txt \
 /content/Weights/RGBDiff_Final.tar \
- --gpus 0 --arch BNInception --save_scores rgbDiff_scores --workers 1 --max_num 5 \
+ --gpus 0 --arch BNInception --save_scores rgbDiff_scores --workers 1  \
  --classInd_file /content/real-time-action-recognition/UCF_lists/classInd.txt    
 ```
 

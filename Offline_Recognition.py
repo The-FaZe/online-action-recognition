@@ -1,8 +1,5 @@
 import os 
 import time
-#change this to your working directory
-#current_dir = os.getcwd()
-#os.chdir(current_dir + '/real-time-action-recognition')
 
 import torch
 import torch.nn.parallel
@@ -24,10 +21,10 @@ parser.add_argument('dataset', type=str, choices=['ucf101', 'hmdb51', 'kinetics'
 parser.add_argument('weights', nargs='+', type=str,
                     help='1st and 2nd index is RGB and RGBDiff weights respectively')
 parser.add_argument('--arch', type=str, default="BNInception")
-parser.add_argument('--num_segments', type=int, default=8)#?
-parser.add_argument('--sampling_freq', type=int, default=12)#?
-parser.add_argument('--delta', type=int, default=2)#?
-parser.add_argument('--psi', type=float, default=3.5)#?
+parser.add_argument('--num_segments', type=int, default=8, description="Sliding Window Width")
+parser.add_argument('--sampling_freq', type=int, default=12, description="Take 1 image every 12 image")
+parser.add_argument('--delta', type=int, default=2, description="Sliding Window Delta")
+parser.add_argument('--psi', type=float, default=2.5)
 parser.add_argument('--input_size', type=int, default=224)
 parser.add_argument('--crop_fusion_type', type=str, default='avg',
                     choices=['avg', 'max', 'topk'])
@@ -57,6 +54,7 @@ def label_dic(classInd):
           
   return action_label
 
+#The following 2 function responsible for display a white rectangler around any text displayed on OpenCV winodw
 def add_status(frame_,s=(),x=5,y=12,font = cv2.FONT_HERSHEY_SIMPLEX
     ,fontScale = 0.4,fontcolor=(255,255,255),thickness=3,box_flag=True
     ,alpha = 0.4,boxcolor=(129, 129, 129),x_mode=None):
@@ -88,7 +86,8 @@ def add_box(frame,text,origin,font,color,fontScale=1,thickness=1,alpha=0.4,enabl
         # Following line overlays transparent rectangle over the image
         frame[:] = cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0)
     return pt2[1]-pt1[1]+1
-
+  
+#intialize tensors to save some of the scores for the next iteration
 pre_scoresRGB  = torch.zeros((args.num_segments - args.delta ,101)).cuda()
 pre_scoresRGBDiff =  torch.zeros((args.num_segments - args.delta ,101)).cuda()
 
@@ -105,7 +104,9 @@ def eval_video(data, model):
           #Forword Propagation
           if model == 'RGB':
               input = data.view(-1, 3, data.size(1), data.size(2))
+              #concatenate the new scores with previous ones (Sliding window)
               output = torch.cat((pre_scoresRGB,model_RGB(input)),0)
+              #Save Current scores as previous ones for the next iteration
               pre_scoresRGB = output.data[-(args.num_segments - args.delta):,]
               
           elif model == 'RGBDiff':
@@ -121,7 +122,8 @@ if args.dataset == 'ucf101':
   num_class = 101
 else:
   raise ValueError('Unkown dataset: ' + args.dataset)
-  
+
+#Intializing the streams  
 model_RGB = TSN_model(num_class, 1, 'RGB',
                 base_model_name=args.arch, consensus_type='avg', dropout=args.dropout)
   
@@ -177,6 +179,7 @@ def one_video():
   frames = []  
   frame_count = 0
   
+  #Set opencv parameters according to the size of the input frames
   if args.quality == '1080p':
       orgHigh =(0,40) 
       orgDown = (0,1020)
@@ -225,7 +228,7 @@ def one_video():
               TopScoresList.append(int(final_scores[int(i)]))
           #Check for "no action state"
           action_checker = Evaluation(TopScoresList, args.psi)
-          #qaction_checker = True
+          #action_checker = True
           if not action_checker:
               print('No Assigned Action')
           for i in scores_indcies[:5]:
